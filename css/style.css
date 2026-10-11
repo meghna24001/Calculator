@@ -446,6 +446,21 @@ body {
     border-radius: 4px;
 }
 
+.result-line.wrap {
+    display: block;
+    white-space: normal;
+    word-break: break-all;
+    text-align: right;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.result-line.error {
+    color: var(--btn-clear-text);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
 /* Natural Language Query Bar */
 .smart-query-bar {
     display: flex;

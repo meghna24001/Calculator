@@ -80,6 +80,46 @@
 
     let deferredInstallPrompt = null;
 
+    let hasError = false;
+    const OPERATORS = ['+', '-', '*', '/', '^'];
+    const MAX_NUMBER_DIGITS = 15;
+    const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+    const CONTINUES_RESULT = ['+', '-', '*', '/', '^', '%', '!', '²', 'P', 'C', '^(-1)'];
+
+    const DISPLAY_MIN_FONT_PX = 16;
+    const EXPR_MIN_FONT_PX = 10;
+
+    function shrinkToFit(el, minPx) {
+        el.style.fontSize = '';                       // back to the CSS size
+        let size = parseFloat(getComputedStyle(el).fontSize);
+        while (el.scrollWidth > el.clientWidth && size > minPx) {
+            size -= 1;
+            el.style.fontSize = size + 'px';
+        }
+    }
+
+    function fitDisplay() {
+        display.classList.remove('wrap');
+        shrinkToFit(display, DISPLAY_MIN_FONT_PX);
+        if (display.scrollWidth > display.clientWidth) display.classList.add('wrap');
+        display.scrollTop = display.scrollHeight;
+        display.scrollLeft = display.scrollWidth;
+    }
+
+    function fitExpression() {
+        shrinkToFit(expressionDisplay, EXPR_MIN_FONT_PX);
+        expressionDisplay.scrollLeft = expressionDisplay.scrollWidth;
+    }
+
+    function setupAutoFit() {
+        const opts = { childList: true, characterData: true, subtree: true };
+        new MutationObserver(fitDisplay).observe(display, opts);
+        new MutationObserver(fitExpression).observe(expressionDisplay, opts);
+        const refit = () => { fitDisplay(); fitExpression(); };
+        window.addEventListener('resize', refit);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+    }
+
     // Shared trigger for install action (defined early so it's accessible everywhere)
     async function triggerInstall() {
         const btnSidebarInstall = document.getElementById('btn-pwa-install-sidebar');
@@ -232,6 +272,8 @@
 
         // 6. Register Service Worker & PWA Install
         setupPWA();
+
+        setupAutoFit();
     }
 
     // ==========================================
@@ -278,7 +320,6 @@
         });
     }
 
-    // ==========================================
     // ==========================================
     // MODE SWITCHING (BASIC <-> SCIENTIFIC <-> CONVERTER)
     // ==========================================
@@ -361,6 +402,8 @@
         }
 
         renderKeypad();
+        fitDisplay();
+        fitExpression();
     }
 
     // ==========================================
@@ -513,41 +556,126 @@
         return display.textContent || '';
     }
 
-    function setDisplay(val) {
+    function setDisplay(val, isError = false) {
         display.textContent = val;
-        display.scrollLeft = display.scrollWidth;
+        display.classList.toggle('error', isError);
+    }
+
+    function isDigit(c) { return c.length === 1 && c >= '0' && c <= '9'; }
+    function lastChar(s) { return s.length ? s[s.length - 1] : ''; }
+
+    function openParenCount(s) {
+        let n = 0;
+        for (const c of s) {
+            if (c === '(') n++;
+            else if (c === ')' && n > 0) n--;
+        }
+        return n;
+    }
+
+    function resetIfError() {
+        if (!hasError) return;
+        setDisplay('');
+        expressionDisplay.textContent = '';
+        resultDisplayed = false;
+        hasError = false;
+    }
+
+    function currentNumberSegment(cur) {
+        return cur.match(/[0-9.]*$/)[0];
+    }
+
+    function inputDigit(d, cur, last) {
+        if (/[%!²πe]/.test(last)) return;
+        if (last === ')') cur += '*';
+        const seg = currentNumberSegment(cur);
+        if (seg === '0') { setDisplay(d === '0' ? cur : cur.slice(0, -1) + d); return; }
+        if (seg.replace('.', '').length >= MAX_NUMBER_DIGITS) return;
+        setDisplay(cur + d);
+    }
+
+    function inputDecimal(cur, last) {
+        if (/[%!²πe]/.test(last)) return;
+        if (last === ')') cur += '*';
+        const seg = currentNumberSegment(cur);
+        if (seg.includes('.')) return;
+        if (seg.length >= MAX_NUMBER_DIGITS) return;
+        setDisplay(cur + (seg === '' ? '0.' : '.'));
+    }
+
+    function inputOperator(op, cur, last) {
+        if (last === 'P' || last === 'C') return;
+        if (last === '.') cur = cur.slice(0, -1);
+        const trailing = cur.match(/[+\-*\/^]*$/)[0];
+        const core = cur.slice(0, cur.length - trailing.length);
+
+        // Nothing before it (or just "("): only a single negative sign is allowed
+        if (core === '' || core.endsWith('(')) {
+            if (op === '-' && trailing === '') setDisplay(cur + '-');
+            return;
+        }
+        // 5*-3 : negative sign after * / ^
+        if (op === '-' && trailing.length === 1 && '*/^'.includes(trailing)) {
+            setDisplay(cur + '-');
+            return;
+        }
+        if (op === '-' && trailing.length > 1 && trailing.endsWith('-')) return;
+        // Otherwise replace the previous operator
+        setDisplay(core + op);
     }
 
     function appendInput(val) {
-        const cur = getDisplay();
+        resetIfError();
+        let cur = getDisplay();
 
-        // Regression: Typing a new number right after a result starts a fresh calculation
-        const isNumberOrConstant = /^[0-9.πe]$/.test(val);
-        if (resultDisplayed && isNumberOrConstant) {
-            setDisplay(val);
+        if (resultDisplayed) {
+            const keep = PLAIN_NUMBER.test(cur) && CONTINUES_RESULT.includes(val);
+            if (!keep) { cur = ''; setDisplay(''); }
             resultDisplayed = false;
+        }
+        const last = lastChar(cur);
+
+        if (isDigit(val)) return inputDigit(val, cur, last);
+        if (val === '.') return inputDecimal(cur, last);
+        if (OPERATORS.includes(val)) return inputOperator(val, cur, last);
+
+        if (val === '%') {
+            if (isDigit(last)) setDisplay(cur + '%');
             return;
         }
-
-        // If result is displayed and user hits an operator, continue with result
-        if (resultDisplayed) {
-            resultDisplayed = false;
+        if (val.endsWith('(')) {                 // "(", "10^(", "e^("
+            if (last === '.' || last === '%') return;
+            if (isDigit(last) || /[)!²πe]/.test(last)) cur += '*';
+            setDisplay(cur + val);
+            return;
         }
-
-        // Prevent invalid double decimals in the current number segment
-        if (val === '.') {
-            const segments = cur.split(/[\+\-\*\/\(\)\^\,\%]/);
-            const lastSegment = segments[segments.length - 1];
-            if (lastSegment.includes('.')) {
-                return;
-            }
+        if (val === ')') {
+            if (openParenCount(cur) === 0) return;
+            if (!/[0-9)%!²πe]/.test(last)) return;
+            setDisplay(cur + ')');
+            return;
         }
-
+        if (val === 'π' || val === 'e') {
+            if (last === '.' || last === '%') return;
+            if (last === 'π' || last === 'e') cur += '*';
+            setDisplay(cur + val);
+            return;
+        }
+        if (val === '!' || val === 'P' || val === 'C') {
+            if (isDigit(last) || last === ')') setDisplay(cur + val);
+            return;
+        }
+        if (val === '²' || val === '^(-1)') {
+            if (isDigit(last) || /[)πe]/.test(last)) setDisplay(cur + val);
+            return;
+        }
         setDisplay(cur + val);
     }
 
     function appendFunction(funcName) {
+        resetIfError();
         if (resultDisplayed) {
+            setDisplay('');
             resultDisplayed = false;
         }
         setDisplay(getDisplay() + `${funcName}(`);
@@ -587,26 +715,39 @@
         resultDisplayed = false;
         fractionMode = 'decimal';
         badgeFraction.style.display = 'none';
+        hasError = false;
     }
 
-    // Regression: Ans must work both on an empty display and mid-expression right after an operator or "("
-    function insertAns() {
-        if (lastResult === null) return;
+    function toPlainNumber(n) {
+        const s = String(n);
+        if (!/e/i.test(s)) return s;
+        if (Math.abs(n) >= 1) return BigInt(n).toString();
+        const f = n.toFixed(20).replace(/0+$/, '').replace(/\.$/, '');
+        return Number(f) === 0 ? null : f;
+    }
+
+    function insertValue(value) {
+        resetIfError();
+        if (typeof value !== 'number' || !Number.isFinite(value)) return;
+        const plain = toPlainNumber(value);
+        if (plain === null) return;
 
         const cur = getDisplay();
+        const last = lastChar(cur);
+
         if (cur === '' || resultDisplayed) {
-            setDisplay(String(lastResult));
+            setDisplay(plain);
             resultDisplayed = false;
-        } else {
-            const lastChar = cur.slice(-1);
-            if (/[\+\-\*\/\(\^\,]/.test(lastChar)) {
-                setDisplay(cur + String(lastResult));
-            } else {
-                // If preceded by a number, multiply implicitly
-                setDisplay(cur + '*' + String(lastResult));
-            }
+            return;
         }
+        if (last === '.' || last === '%') return;
+
+        const text = value < 0 ? `(${plain})` : plain;
+        if (last === '(' || OPERATORS.includes(last)) setDisplay(cur + text);
+        else setDisplay(cur + '*' + text);
     }
+
+    function insertAns() { insertValue(lastResult); }
 
     // ==========================================
     // SCIENTIFIC TOGGLES (DEG/RAD, INV, FRACTION)
@@ -654,7 +795,46 @@
     // CALCULATION & PARSER EXECUTION
     // ==========================================
 
+    function prepareExpression(raw) {
+        // drop dangling operators / "(" / "." and auto-close open brackets
+        const expr = raw.trim().replace(/[\s+\-*\/^(.PC]+$/, '');
+        if (!expr) return '';
+        return expr + ')'.repeat(openParenCount(expr));
+    }
+
+    const ERROR_RULES = [
+        [/divide by zero|mod by zero/i, "Can't divide by zero"],
+        [/factorial overflow/i, 'Too large: factorial works up to 170!'],
+        [/invalid factorial/i, 'Factorial needs a whole number, 0 or more'],
+        [/permutation|combination/i, 'nPr / nCr need whole numbers with r ≤ n'],
+        [/square root of negative/i, "Can't take the square root of a negative number"],
+        [/even root of negative/i, "Can't take an even root of a negative number"],
+        [/0th root/i, 'Root degree cannot be 0'],
+        [/logarithm/i, 'Logarithm needs a number greater than 0'],
+        [/asin|acos/i, 'Inverse sin/cos need a value from -1 to 1'],
+        [/undefined tangent/i, 'Tangent is undefined at this angle'],
+        [/complex result/i, "Result isn't a real number"],
+        [/overflow in exponentiation|invalid calculation/i, 'Result is out of range'],
+        [/percentage/i, 'Invalid use of %'],
+        [/Unknown function(?: or variable)?: (.+)/i, (h) => `"${h[1]}" is not a known function`],
+        [/Unexpected character: "(.+)"/i, (h) => `Unsupported character "${h[1]}"`],
+        [/unexpected end|expected token|expected "|unexpected token|unexpected extra/i, 'Incomplete or invalid expression'],
+    ];
+
+    function friendlyError(msg) {
+        const m = String(msg || '');
+        for (const [re, out] of ERROR_RULES) {
+            const hit = m.match(re);
+            if (hit) return typeof out === 'function' ? out(hit) : out;
+        }
+        return m || 'Something went wrong';
+    }
+    
     function calculate() {
+        if (hasError) return;
+        const shown = getDisplay().trim();
+        if (!shown) return;
+        if (resultDisplayed && PLAIN_NUMBER.test(shown)) return; // already a result
         const rawExpr = getDisplay().trim();
         if (!rawExpr) return;
 
@@ -667,11 +847,12 @@
 
             if (parseResult.error || parseResult.result === null) {
                 expressionDisplay.textContent = rawExpr + ' =';
-                setDisplay(parseResult.error || 'Error');
+                setDisplay(friendlyError(parseResult.error || 'Error'), true);
                 resultDisplayed = true;
+                hasError = true;
                 return;
             }
-
+            hasError = false;
             // Success: update displays and states
             expressionDisplay.textContent = rawExpr + ' =';
             setDisplay(parseResult.formatted);
@@ -699,8 +880,9 @@
 
         } catch (err) {
             expressionDisplay.textContent = rawExpr + ' =';
-            setDisplay('Error');
+            setDisplay('Something went wrong', true);
             resultDisplayed = true;
+            hasError = true;
         }
     }
 
@@ -708,7 +890,8 @@
     function handleSmartSubmit() {
         const query = smartMathInput.value.trim();
         if (!query) return;
-
+        resetIfError();
+        resultDisplayed = false;
         setDisplay(query);
         smartMathInput.value = '';
         calculate();
@@ -719,14 +902,15 @@
     // ==========================================
 
     function getEvaluatedDisplayValue() {
+        if (hasError) return null;
         const cur = getDisplay().trim();
-        if (!cur || cur === 'Error') return null;
+        if (!cur) return null;
 
-        if (resultDisplayed && typeof lastResult === 'number') {
-            return lastResult;
+        const res = MathParser.evaluate(prepareExpression(cur), { angleMode: angleMode });
+        if (res.error || typeof res.numericResult !== 'number') {
+            expressionDisplay.textContent = res.error ? friendlyError(res.error) : 'Nothing to add';
+            return null;
         }
-
-        const res = MathParser.evaluate(cur, { angleMode: angleMode });
         return res.numericResult;
     }
 
@@ -744,9 +928,7 @@
 
     function memoryRecall() {
         if (memoryValue === null) return;
-        setDisplay(String(memoryValue));
-        expressionDisplay.textContent = 'MR';
-        resultDisplayed = true;
+        insertValue(memoryValue);
     }
 
     function memoryAdd() {
