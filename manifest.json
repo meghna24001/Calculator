@@ -1,0 +1,48 @@
+{
+  "name": "Calyx",
+  "short_name": "Calyx",
+  "description": "Fast, responsive basic, scientific, and graphing calculator with step-by-step breakdown, history, unit converter, and offline PWA support.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
+  "categories": ["utilities", "education", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Basic Calculator",
+      "short_name": "Basic",
+      "description": "Open standard arithmetic calculator",
+      "url": "./index.html?mode=basic",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Scientific Calculator",
+      "short_name": "Scientific",
+      "description": "Open scientific calculator with trigonometry and statistics",
+      "url": "./index.html?mode=scientific",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

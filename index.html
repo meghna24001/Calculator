@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="blue">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Calyx</title>
+
+    <!-- Meta Description & SEO -->
+    <meta name="description" content="Fast, responsive modern basic and scientific calculator PWA with step-by-step resolution, offline support, and light/dark themes.">
+    <meta name="theme-color" content="#1e293b">
+
+    <!-- PWA & iOS Safari Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Calyx">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Top Header Bar -->
+    <header class="app-header">
+        <div class="header-left">
+            <!-- Sidebar Hamburger on the left -->
+            <button id="btn-sidebar-toggle" class="icon-btn sidebar-hamburger" title="Menu" aria-label="Open sidebar menu" aria-expanded="false" aria-controls="app-sidebar">
+                <span class="hamburger-icon">
+                    <span></span><span></span><span></span>
+                </span>
+            </button>
+        </div>
+
+        <!-- Header Controls (History icon on top) -->
+        <div class="header-actions">
+            <button id="btn-history-toggle" class="icon-btn" title="History &amp; Steps" aria-label="Toggle calculation history">📜</button>
+        </div>
+    </header>
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
+    <aside id="app-sidebar" class="app-sidebar" role="navigation" aria-label="App sidebar menu">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <div class="sidebar-icon-frame">
+                    <img src="icons/icon-192.png" alt="Calyx icon" class="sidebar-brand-icon">
+                </div>
+                <div class="sidebar-brand-text">
+                    <span class="sidebar-title">Calyx</span>
+                    <span class="sidebar-subtitle">Modern Calculator Hub</span>
+                </div>
+            </div>
+            <button id="btn-sidebar-close" class="icon-btn sidebar-close-btn" aria-label="Close sidebar">&#x2715;</button>
+        </div>
+
+        <div class="sidebar-section-label">Calculator Modes</div>
+        <nav class="sidebar-nav">
+            <button class="sidebar-nav-item mode-item active" data-mode="basic" aria-label="Basic Calculator">
+                <span class="sidebar-nav-icon">🔢</span>
+                <span class="sidebar-nav-text">Basic Calculator</span>
+            </button>
+            <button class="sidebar-nav-item mode-item" data-mode="scientific" aria-label="Scientific Calculator">
+                <span class="sidebar-nav-icon">🔬</span>
+                <span class="sidebar-nav-text">Scientific Calculator</span>
+            </button>
+            <button class="sidebar-nav-item mode-item" data-mode="converter" aria-label="Unit Converter">
+                <span class="sidebar-nav-icon">&#x21C4;</span>
+                <span class="sidebar-nav-text">Unit Converter</span>
+            </button>
+            <button class="sidebar-nav-item mode-item" data-mode="graph" aria-label="Graph Mode">
+                <span class="sidebar-nav-icon">&#x1F4C8;</span>
+                <span class="sidebar-nav-text">Graph Plotter</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label">Tools</div>
+        <nav class="sidebar-nav">
+            <button id="btn-open-formula-sheet" class="sidebar-nav-item" aria-label="Open Formula Sheet">
+                <span class="sidebar-nav-icon">📐</span>
+                <span class="sidebar-nav-text">Formula Sheet</span>
+                <span class="sidebar-nav-badge">NEW</span>
+            </button>
+            <button id="btn-sidebar-history" class="sidebar-nav-item" aria-label="Open History">
+                <span class="sidebar-nav-icon">📜</span>
+                <span class="sidebar-nav-text">History &amp; Steps</span>
+            </button>
+            <button id="btn-sidebar-keyboard" class="sidebar-nav-item" aria-label="Keyboard Shortcuts">
+                <span class="sidebar-nav-icon">⌨</span>
+                <span class="sidebar-nav-text">Keyboard Shortcuts</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label">Appearance</div>
+        <nav class="sidebar-nav">
+            <button id="btn-sidebar-theme" class="sidebar-nav-item" aria-label="Toggle theme">
+                <span class="sidebar-nav-icon" id="sidebar-theme-icon">🌙</span>
+                <span class="sidebar-nav-text" id="sidebar-theme-label">Switch to Dark Mode</span>
+            </button>
+            <div class="sidebar-accent-row">
+                <span class="sidebar-section-sublabel">Accent Color</span>
+                <div class="sidebar-palette">
+                    <button class="sidebar-swatch active" data-accent-val="blue"    style="background:#2563eb" title="Blue"    aria-label="Blue accent"></button>
+                    <button class="sidebar-swatch"        data-accent-val="emerald" style="background:#059669" title="Emerald" aria-label="Emerald accent"></button>
+                    <button class="sidebar-swatch"        data-accent-val="purple"  style="background:#7c3aed" title="Purple"  aria-label="Purple accent"></button>
+                    <button class="sidebar-swatch"        data-accent-val="amber"   style="background:#d97706" title="Amber"   aria-label="Amber accent"></button>
+                    <button class="sidebar-swatch"        data-accent-val="rose"    style="background:#e11d48" title="Rose"    aria-label="Rose accent"></button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-label">About</div>
+        <div class="sidebar-about">
+            <p>Calyx Calculator PWA</p>
+            <p style="opacity:0.65; font-size:0.78rem;">Framework-free &middot; No backend &middot; Offline ready</p>
+        </div>
+
+        <div class="sidebar-footer">
+            <button id="btn-pwa-install-sidebar" class="sidebar-install-btn" aria-label="Install app">&#x2B07; Install App</button>
+        </div>
+    </aside>
+
+    <!-- ===================== FORMULA SHEET DRAWER ===================== -->
+    <div id="formula-sheet-overlay" class="formula-sheet-overlay" aria-hidden="true"></div>
+    <aside id="formula-sheet-drawer" class="formula-sheet-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="formula-sheet-title">
+        <div class="formula-sheet-header">
+            <div class="formula-sheet-title-wrap">
+                <span class="formula-sheet-icon">📐</span>
+                <h2 id="formula-sheet-title" class="formula-sheet-title">Math Formula Sheet</h2>
+            </div>
+            <button id="btn-close-formula-sheet" class="icon-btn" aria-label="Close formula sheet">&#x2715;</button>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="formula-tabs" role="tablist" aria-label="Formula categories">
+            <button class="formula-tab active" data-tab="algebra"       role="tab" aria-selected="true">Algebra</button>
+            <button class="formula-tab"        data-tab="trigonometry"  role="tab" aria-selected="false">Trigonometry</button>
+            <button class="formula-tab"        data-tab="calculus"      role="tab" aria-selected="false">Calculus</button>
+            <button class="formula-tab"        data-tab="statistics"    role="tab" aria-selected="false">Statistics</button>
+            <button class="formula-tab"        data-tab="geometry"      role="tab" aria-selected="false">Geometry</button>
+        </div>
+
+        <!-- Formula Content Area -->
+        <div class="formula-content" id="formula-content">
+            <!-- Populated dynamically by JS -->
+        </div>
+    </aside>
+
+    <!-- App Workspace -->
+    <main class="app-workspace">
+        <!-- Main Calculator Card -->
+        <section id="calculator-panel" class="calculator-card mode-basic" role="region" aria-label="Calculator Keypad and Display">
+            
+            <!-- Display Container -->
+            <div id="display-container" class="display-box">
+                <!-- Status Badges -->
+                <div class="display-statusbar">
+                    <div class="status-badges">
+                        <span id="badge-memory" class="badge">M</span>
+                        <span id="badge-angle" class="badge badge-interactive" title="Click to toggle DEG/RAD" style="display:none">DEG</span>
+                        <span id="badge-inv" class="badge">INV</span>
+                        <span id="badge-fraction" class="badge">DEC</span>
+                    </div>
+                    <div id="display-mode-label" class="mode-label">Basic</div>
+                </div>
+
+                <!-- Secondary Expression Line -->
+                <div id="expression-display" class="expression-line" aria-label="Expression history" aria-live="polite"></div>
+
+                <!-- Primary Display -->
+                <div id="display" class="result-line" tabindex="0" role="textbox" aria-label="Current calculator input and result" aria-live="polite"></div>
+            </div>
+
+            <!-- Natural Language / Quick Math Input -->
+            <div class="smart-query-bar">
+                <input type="text" id="smart-math-input" class="smart-input" placeholder="Natural query e.g. '15% of 240' or 'sqrt 144'" aria-label="Natural language calculation">
+                <button type="button" id="smart-math-submit" class="smart-submit-btn" aria-label="Evaluate natural math">Calculate</button>
+            </div>
+
+            <!-- Memory Toolbar -->
+            <div id="memory-toolbar" class="memory-bar" role="toolbar" aria-label="Memory registers">
+                <button type="button" id="memory-clear"    class="mem-btn" aria-label="Memory clear">MC</button>
+                <button type="button" id="memory-recall"   class="mem-btn" aria-label="Memory recall">MR</button>
+                <button type="button" id="memory-add"      class="mem-btn" aria-label="Memory add">M+</button>
+                <button type="button" id="memory-subtract" class="mem-btn" aria-label="Memory subtract">M&#x2212;</button>
+            </div>
+
+            <!-- Dynamic Keypad Grid -->
+            <div id="keypad" class="keypad-grid layout-basic" role="group" aria-label="Calculator keypad">
+                <!-- Injected via JavaScript based on mode -->
+            </div>
+        </section>
+
+        <!-- Side Analysis & Critical Points Panel -->
+        <aside id="graph-analysis-panel" class="graph-analysis-panel" style="display: none;" role="complementary" aria-label="Graph Function Analysis and Critical Points">
+            <div class="analysis-header">
+                <div class="analysis-title-group">
+                    <span class="analysis-icon">📐</span>
+                    <h3 class="analysis-title">Function Analysis</h3>
+                </div>
+                <button type="button" id="btn-close-analysis" class="icon-btn" title="Close Analysis Panel" aria-label="Close analysis panel">&#x2715;</button>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-section-title">
+                    <span>Critical Points</span>
+                    <span class="analysis-badge" id="analysis-kp-count">0</span>
+                </div>
+                <div class="analysis-kp-list" id="analysis-kp-list">
+                    <p class="empty-state">No critical points in visible range.</p>
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-section-title">
+                    <span>Domain &amp; Asymptotes</span>
+                </div>
+                <div class="analysis-notes-list" id="analysis-domain-notes"></div>
+            </div>
+        </aside>
+
+        <!-- Side History & Steps Panel -->
+        <aside id="history-panel" class="history-panel" style="display: none;" role="complementary" aria-label="Calculation history and steps">
+            <div class="history-header">
+                <div class="history-tabs">
+                    <button type="button" id="tab-btn-history" class="history-tab-btn active">📜 History</button>
+                    <button type="button" id="tab-btn-steps"   class="history-tab-btn">📐 Show Work</button>
+                </div>
+                <button type="button" id="btn-close-history" class="icon-btn" title="Close History" aria-label="Close history" style="margin-left: auto;">&#x2715;</button>
+            </div>
+
+            <div class="history-actions-bar">
+                <button type="button" id="btn-export-history" class="history-tool-btn" title="Export or copy history">
+                    <span>📋</span> Export
+                </button>
+                <button type="button" id="btn-clear-history" class="history-tool-btn" title="Clear all history entries">
+                    <span>🗑</span> Clear
+                </button>
+            </div>
+
+            <div id="history-filter-bar" class="history-filter-bar" role="group" aria-label="Filter history by mode">
+                <button type="button" class="hist-filter-btn active" data-filter="all"        aria-pressed="true">All</button>
+                <button type="button" class="hist-filter-btn"        data-filter="basic"      aria-pressed="false">Basic</button>
+                <button type="button" class="hist-filter-btn"        data-filter="scientific" aria-pressed="false">Scientific</button>
+                <button type="button" class="hist-filter-btn"        data-filter="converter"  aria-pressed="false">&#x21C4; Convert</button>
+                <button type="button" class="hist-filter-btn"        data-filter="graph"      aria-pressed="false">&#x1F4C8; Graph</button>
+            </div>
+
+            <div id="history-list" class="history-list" tabindex="0">
+                <p class="empty-state">No calculations yet.</p>
+            </div>
+
+            <div id="steps-list" class="steps-list">
+                <p class="empty-state">Perform a calculation to inspect step-by-step order of operations.</p>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Keyboard Help Modal -->
+    <div id="keyboard-help-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="kbd-modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="kbd-modal-title" class="modal-title">⌨ Keyboard Shortcuts</h3>
+                <button type="button" class="modal-close-btn" data-close="keyboard-help-modal" aria-label="Close modal">&#x00D7;</button>
+            </div>
+            <div class="shortcuts-table">
+                <span class="kbd-badge">0 &#x2013; 9</span><span>Numbers</span>
+                <span class="kbd-badge">+ &#x2212; * /</span><span>Basic arithmetic operators</span>
+                <span class="kbd-badge">Enter / =</span><span>Calculate result</span>
+                <span class="kbd-badge">Esc / C</span><span>Clear calculator display</span>
+                <span class="kbd-badge">Backspace</span><span>Delete last character</span>
+                <span class="kbd-badge">%</span><span>Percentage (cascading)</span>
+                <span class="kbd-badge">( )</span><span>Parentheses / grouping</span>
+                <span class="kbd-badge">^</span><span>Exponentiation (power)</span>
+                <span class="kbd-badge">!</span><span>Factorial</span>
+                <span class="kbd-badge">s / c / t</span><span>sin, cos, tan</span>
+                <span class="kbd-badge">l / n</span><span>log (base 10), ln (natural)</span>
+                <span class="kbd-badge">p / e</span><span>&#x3C0;, Euler's number e</span>
+                <span class="kbd-badge">m</span><span>Memory add (M+)</span>
+                <span class="kbd-badge">r</span><span>Memory recall (MR)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accent Color Palette Modal -->
+    <div id="palette-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="palette-modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="palette-modal-title" class="modal-title">🎨 Accent Theme</h3>
+                <button type="button" class="modal-close-btn" data-close="palette-modal" aria-label="Close modal">&#x00D7;</button>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px;">
+                Choose an accent color for operators, highlights, and icons:
+            </p>
+            <div class="palette-grid">
+                <button type="button" class="palette-swatch active" data-accent-val="blue"    style="background: #2563eb;" title="Electric Blue"    aria-label="Electric Blue"></button>
+                <button type="button" class="palette-swatch"        data-accent-val="emerald" style="background: #059669;" title="Emerald Green"    aria-label="Emerald Green"></button>
+                <button type="button" class="palette-swatch"        data-accent-val="purple"  style="background: #7c3aed;" title="Amethyst Purple"  aria-label="Amethyst Purple"></button>
+                <button type="button" class="palette-swatch"        data-accent-val="amber"   style="background: #d97706;" title="Solar Amber"      aria-label="Solar Amber"></button>
+                <button type="button" class="palette-swatch"        data-accent-val="rose"    style="background: #e11d48;" title="Crimson Rose"     aria-label="Crimson Rose"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Install Guide Modal (Universal for mobile & desktop) -->
+    <div id="ios-guide-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ios-modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="ios-modal-title" class="modal-title">📲 Install Calculator App</h3>
+                <button type="button" class="modal-close-btn" data-close="ios-guide-modal" aria-label="Close modal">&#x00D7;</button>
+            </div>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+                You can install this app directly on your phone, tablet, or PC for fast offline use.
+            </div>
+            <div style="font-weight: 700; font-size: 0.84rem; color: var(--accent-primary); margin-bottom: 8px;">iPhone &amp; iPad (Safari):</div>
+            <div class="ios-guide-step">
+                <span class="ios-step-num">1</span>
+                <span>Tap the <strong>Share</strong> button (box with upward arrow) in Safari.</span>
+            </div>
+            <div class="ios-guide-step">
+                <span class="ios-step-num">2</span>
+                <span>Scroll down and select <strong>Add to Home Screen</strong>.</span>
+            </div>
+            <div style="font-weight: 700; font-size: 0.84rem; color: var(--accent-primary); margin: 12px 0 8px;">Android &amp; Desktop (Chrome / Edge):</div>
+            <div class="ios-guide-step">
+                <span class="ios-step-num">1</span>
+                <span>Look for the <strong>Install</strong> or <strong>⊕ App available</strong> icon in your browser address bar or menu (⋮).</span>
+            </div>
+            <div class="ios-guide-step">
+                <span class="ios-step-num">2</span>
+                <span>Tap <strong>Install</strong> to add it to your apps or home screen.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/parser.js"></script>
+    <script src="js/converter.js"></script>
+    <script src="js/grapher.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,2956 @@
+/* ==========================================================================
+   MODERN SCIENTIFIC & BASIC CALCULATOR PWA STYLESHEET
+   Responsive, Accessible, Themed with CSS Custom Properties & Safe Area Support
+   ========================================================================== */
+
+:root {
+    /* Base typography */
+    --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    
+    /* Default Accent: Electric Blue */
+    --accent-primary: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-active: #1e40af;
+    --accent-subtle: rgba(37, 99, 235, 0.12);
+    --accent-text: #ffffff;
+    
+    /* Light Theme (Default) */
+    --bg-canvas: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-display: #f8fafc;
+    --bg-display-border: #e2e8f0;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    
+    /* Keypad button palettes (Light) */
+    --btn-num-bg: #ffffff;
+    --btn-num-text: #1e293b;
+    --btn-num-hover: #f1f5f9;
+    --btn-num-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    --btn-op-bg: #e0e7ff;
+    --btn-op-text: #3730a3;
+    --btn-op-hover: #c7d2fe;
+
+    --btn-fn-bg: #f1f5f9;
+    --btn-fn-text: #334155;
+    --btn-fn-hover: #e2e8f0;
+
+    --btn-clear-bg: #fee2e2;
+    --btn-clear-text: #991b1b;
+    --btn-clear-hover: #fecaca;
+
+    --btn-equal-bg: var(--accent-primary);
+    --btn-equal-text: #ffffff;
+    --btn-equal-hover: var(--accent-hover);
+
+    /* Panels & Overlays */
+    --panel-bg: #ffffff;
+    --panel-border: #e2e8f0;
+    --modal-bg: rgba(15, 23, 42, 0.5);
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+}
+
+/* ==========================================================================
+   COLOR SCHEMES & ACCENT THEMES
+   ========================================================================== */
+
+/* Dark Mode Theme */
+[data-theme="dark"] {
+    --bg-canvas: #090d16;
+    --bg-card: #131c2e;
+    --bg-display: #0d1524;
+    --bg-display-border: #1e293b;
+    --border-color: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --btn-num-bg: #1e293b;
+    --btn-num-text: #f8fafc;
+    --btn-num-hover: #2b3952;
+    --btn-num-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+
+    --btn-op-bg: #1e3a8a;
+    --btn-op-text: #bfdbfe;
+    --btn-op-hover: #1d4ed8;
+
+    --btn-fn-bg: #162235;
+    --btn-fn-text: #cbd5e1;
+    --btn-fn-hover: #213047;
+
+    --btn-clear-bg: #450a0a;
+    --btn-clear-text: #fca5a5;
+    --btn-clear-hover: #5c0e0e;
+
+    --panel-bg: #131c2e;
+    --panel-border: #1e293b;
+    --modal-bg: rgba(0, 0, 0, 0.7);
+    --card-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Accent Themes */
+[data-accent="emerald"] {
+    --accent-primary: #059669;
+    --accent-hover: #047857;
+    --accent-active: #065f46;
+    --accent-subtle: rgba(5, 150, 105, 0.15);
+}
+[data-theme="dark"][data-accent="emerald"] .operator-btn {
+    --btn-op-bg: #064e3b;
+    --btn-op-text: #a7f3d0;
+    --btn-op-hover: #047857;
+}
+
+[data-accent="purple"] {
+    --accent-primary: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-active: #5b21b6;
+    --accent-subtle: rgba(124, 58, 237, 0.15);
+}
+[data-theme="dark"][data-accent="purple"] .operator-btn {
+    --btn-op-bg: #4c1d95;
+    --btn-op-text: #ddd6fe;
+    --btn-op-hover: #6d28d9;
+}
+
+[data-accent="amber"] {
+    --accent-primary: #d97706;
+    --accent-hover: #b45309;
+    --accent-active: #92400e;
+    --accent-subtle: rgba(217, 119, 6, 0.15);
+}
+[data-theme="dark"][data-accent="amber"] .operator-btn {
+    --btn-op-bg: #78350f;
+    --btn-op-text: #fde68a;
+    --btn-op-hover: #b45309;
+}
+
+[data-accent="rose"] {
+    --accent-primary: #e11d48;
+    --accent-hover: #be123c;
+    --accent-active: #9f1239;
+    --accent-subtle: rgba(225, 29, 72, 0.15);
+}
+[data-theme="dark"][data-accent="rose"] .operator-btn {
+    --btn-op-bg: #881337;
+    --btn-op-text: #fecdd3;
+    --btn-op-hover: #be123c;
+}
+
+/* ==========================================================================
+   RESET & LAYOUT BASE
+   ========================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    line-height: 1.5;
+    overflow-x: hidden;
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+}
+
+/* Accessibility: respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Screen reader only utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ==========================================================================
+   TOP NAVIGATION BAR & CONTROLS
+   ========================================================================== */
+
+.app-header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 4px 12px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Mode Switch Segmented Pills */
+.mode-toggle-group {
+    display: flex;
+    background: var(--btn-fn-bg);
+    border: 1px solid var(--border-color);
+    padding: 3px;
+    border-radius: var(--radius-md);
+    gap: 2px;
+}
+
+.mode-pill-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.mode-pill-btn:hover {
+    color: var(--text-primary);
+}
+
+.mode-pill-btn.active {
+    background: var(--bg-card);
+    color: var(--accent-primary);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Action Icons Toolbar */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background: var(--btn-fn-hover);
+    transform: translateY(-1px);
+}
+
+.icon-btn:active {
+    transform: translateY(0);
+}
+
+/* Install Button */
+.install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--accent-primary);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 8px var(--accent-subtle);
+}
+
+.install-btn.installed {
+    display: none;
+}
+
+.install-btn:hover {
+    background: var(--accent-hover);
+}
+
+/* ==========================================================================
+   MAIN APP WORKSPACE
+   ========================================================================== */
+
+.app-workspace {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* Main Calculator Card */
+.calculator-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 16px;
+    width: 100%;
+    max-width: 380px;
+    transition: max-width var(--transition-normal), width var(--transition-normal);
+}
+
+/* When in scientific mode, expand calculator card width on desktop */
+.calculator-card.mode-scientific {
+    max-width: 580px;
+}
+
+/* ==========================================================================
+   DISPLAY SCREEN
+   ========================================================================== */
+
+.display-box {
+    background: var(--bg-display);
+    border: 1px solid var(--bg-display-border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.display-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 20px;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.status-badges {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--border-color);
+    color: var(--text-secondary);
+    display: none;
+}
+
+.badge.active {
+    display: inline-block;
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+}
+
+.badge-interactive {
+    cursor: pointer;
+    display: inline-block;
+}
+
+.badge-interactive:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Secondary Expression Line */
+.expression-line {
+    min-height: 22px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+.expression-line::-webkit-scrollbar {
+    display: none;
+}
+
+/* Primary Result / Input Display */
+.result-line {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+}
+
+.result-line::-webkit-scrollbar {
+    height: 4px;
+}
+
+.result-line::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 4px;
+}
+
+/* Natural Language Query Bar */
+.smart-query-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.smart-input {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    background: var(--bg-display);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.smart-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.smart-submit-btn {
+    border: none;
+    background: var(--btn-fn-bg);
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.smart-submit-btn:hover {
+    background: var(--accent-primary);
+    color: #fff;
+}
+
+/* ==========================================================================
+   MEMORY & SCIENTIFIC TOOLBARS
+   ========================================================================== */
+
+.memory-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.mem-btn {
+    border: 1px solid var(--border-color);
+    background: var(--btn-fn-bg);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 8px 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.mem-btn:hover {
+    background: var(--btn-fn-hover);
+    color: var(--text-primary);
+}
+
+.mem-btn:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================================================
+   KEYPAD BUTTON GRID
+   ========================================================================== */
+
+.keypad-grid {
+    display: grid;
+    gap: 8px;
+    user-select: none;
+}
+
+/* Basic Layout: 4 Columns */
+.keypad-grid.layout-basic {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Scientific Layout: 7 Columns */
+.keypad-grid.layout-scientific {
+    grid-template-columns: repeat(7, 1fr);
+}
+
+/* Common Button Styles */
+.calc-btn {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    min-height: 48px;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+    touch-action: manipulation;
+}
+
+.calc-btn:active {
+    transform: scale(0.94);
+}
+
+.calc-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* Number Keys */
+.calc-btn.number-btn {
+    background: var(--btn-num-bg);
+    color: var(--btn-num-text);
+    box-shadow: var(--btn-num-shadow);
+    border-color: var(--border-color);
+    font-weight: 700;
+}
+
+.calc-btn.number-btn:hover {
+    background: var(--btn-num-hover);
+}
+
+/* Operator Keys (+ - * / %) */
+.calc-btn.operator-btn {
+    background: var(--btn-op-bg);
+    color: var(--btn-op-text);
+    font-size: 1.2rem;
+}
+
+.calc-btn.operator-btn:hover {
+    background: var(--btn-op-hover);
+}
+
+/* Scientific Function Keys */
+.calc-btn.scientific-btn {
+    background: var(--btn-fn-bg);
+    color: var(--btn-fn-text);
+    font-size: 0.9rem;
+    border-color: var(--border-color);
+}
+
+.calc-btn.scientific-btn:hover {
+    background: var(--btn-fn-hover);
+}
+
+/* Action / Modifier Keys */
+.calc-btn.clear-btn {
+    background: var(--btn-clear-bg);
+    color: var(--btn-clear-text);
+}
+
+.calc-btn.clear-btn:hover {
+    background: var(--btn-clear-hover);
+}
+
+.calc-btn.backspace-btn {
+    background: var(--btn-fn-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.calc-btn.equal-btn {
+    background: var(--btn-equal-bg);
+    color: var(--btn-equal-text);
+    box-shadow: 0 3px 10px var(--accent-subtle);
+}
+
+.calc-btn.equal-btn:hover {
+    background: var(--btn-equal-hover);
+}
+
+/* Active State for Special Mode Buttons (INV, Ans) */
+.calc-btn.inv-active, .calc-btn.ans-active {
+    background: var(--accent-primary) !important;
+    color: #ffffff !important;
+}
+
+/* Angle selector row (DEG/RAD) in keypad */
+.angle-selector {
+    grid-column: span 1;
+    display: flex;
+    background: var(--btn-fn-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.angle-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.angle-btn.active {
+    background: var(--accent-primary);
+    color: #fff;
+}
+
+/* Spanned equals in basic layout */
+.layout-basic .equal-btn {
+    grid-column: span 2;
+}
+
+.layout-scientific .equal-btn {
+    grid-column: 1 / -1;
+    min-height: 46px;
+    font-size: 1.3rem;
+}
+
+/* Superscript styling */
+.power-label {
+    font-size: 0.65em;
+    vertical-align: super;
+}
+
+/* ==========================================================================
+   HISTORY & STEP-BY-STEP DRAWER PANEL
+   ========================================================================== */
+
+.history-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 16px;
+    width: 320px;
+    max-height: 600px;
+    display: none; /* Hidden by default per user specification */
+    flex-direction: column;
+}
+
+.history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.history-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--btn-fn-bg);
+    padding: 3px;
+    border-radius: var(--radius-sm);
+}
+
+.history-tab-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.history-tab-btn.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.history-actions-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.history-tool-btn {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all var(--transition-fast);
+}
+
+.history-tool-btn:hover {
+    background: var(--btn-fn-hover);
+    color: var(--text-primary);
+}
+
+/* History Mode Filter Bar */
+.history-filter-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    background: var(--btn-fn-bg);
+    padding: 3px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.hist-filter-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 5px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.hist-filter-btn:hover {
+    color: var(--text-primary);
+}
+
+.hist-filter-btn.active {
+    background: var(--bg-card);
+    color: var(--accent-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.hist-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.hist-mode-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+}
+
+.hist-mode-tag.mode-scientific {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+.hist-mode-tag.mode-basic {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.hist-mode-tag.mode-converter {
+    background: rgba(5, 150, 105, 0.12);
+    color: #059669;
+    border: 1px solid rgba(5, 150, 105, 0.25);
+}
+
+/* History List Container */
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+}
+
+.history-item {
+    background: var(--bg-display);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.history-item:hover {
+    border-color: var(--accent-primary);
+    transform: translateX(2px);
+}
+
+.hist-expr {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+    word-break: break-all;
+}
+
+.hist-res {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.hist-buttons {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.hist-action {
+    border: none;
+    background: var(--btn-fn-bg);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.hist-action:hover {
+    background: var(--btn-fn-hover);
+    color: var(--text-primary);
+}
+
+/* Step-by-Step Breakdown View */
+.steps-list {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.steps-list.active {
+    display: flex;
+}
+
+.step-card {
+    background: var(--bg-display);
+    border-left: 3px solid var(--accent-primary);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.step-header {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 30px 10px;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   MODALS & OVERLAYS
+   ========================================================================== */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--modal-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.modal-backdrop.show {
+    display: flex;
+}
+
+.modal-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.modal-close-btn {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background: var(--btn-fn-hover);
+    color: var(--text-primary);
+}
+
+.shortcuts-table {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 14px;
+    font-size: 0.88rem;
+}
+
+.kbd-badge {
+    background: var(--btn-fn-bg);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+/* Palette Color Picker Grid */
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.palette-swatch {
+    height: 44px;
+    border-radius: var(--radius-sm);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.palette-swatch:hover {
+    transform: scale(1.08);
+}
+
+.palette-swatch.active {
+    border-color: var(--text-primary);
+}
+
+/* iOS Safari Install Guide */
+.ios-guide-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+}
+
+.ios-step-num {
+    background: var(--accent-primary);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
+
+/* Mobile Screens (< 768px) */
+@media (max-width: 768px) {
+    .app-header {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 4px 6px;
+    }
+
+    .header-actions {
+        margin-left: auto;
+        gap: 4px;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .install-btn {
+        padding: 4px 8px;
+        font-size: 0.78rem;
+    }
+
+    .app-workspace {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .calculator-card {
+        max-width: 100%;
+        padding: 12px;
+    }
+
+    .calculator-card.mode-scientific {
+        max-width: 100%;
+    }
+
+    /* Floating History Drawer on Mobile */
+    .history-panel {
+        width: 100%;
+        max-height: 380px;
+    }
+
+    .keypad-grid.layout-scientific {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+
+    .calc-btn {
+        min-height: 44px;
+        font-size: 0.95rem;
+        padding: 4px;
+    }
+
+    .calc-btn.scientific-btn {
+        font-size: 0.8rem;
+    }
+}
+
+/* Extra Small Phones (< 380px - e.g. iPhone SE / small viewport) */
+@media (max-width: 380px) {
+    .brand-title {
+        display: none;
+    }
+
+    .mode-pill-btn {
+        padding: 5px 10px;
+        font-size: 0.78rem;
+    }
+
+    .keypad-grid.layout-scientific {
+        gap: 4px;
+    }
+
+    .calc-btn {
+        min-height: 40px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+
+    .calc-btn.scientific-btn {
+        font-size: 0.72rem;
+    }
+}
+
+/* Installed PWA Standalone Mode Styling */
+@media (display-mode: standalone) {
+    body {
+        padding-top: max(8px, env(safe-area-inset-top));
+    }
+
+    .install-btn {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   UNIT CONVERTER — CONVERTER MODE
+   ========================================================================== */
+
+/* Converter mode card: wider to accommodate the category strip */
+.calculator-card.mode-converter {
+    max-width: 520px;
+}
+
+/* Converter panel replaces the keypad grid */
+.converter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 4px;
+}
+
+/* ---- Category Tab Strip ---- */
+.conv-category-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+    -webkit-overflow-scrolling: touch;
+}
+
+.conv-category-row::-webkit-scrollbar {
+    height: 3px;
+}
+.conv-category-row::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 4px;
+}
+
+.conv-cat-btn {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border: 1px solid var(--border-color);
+    background: var(--btn-fn-bg);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 58px;
+}
+
+.conv-cat-btn:hover {
+    background: var(--btn-fn-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.conv-cat-btn.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 1px 4px var(--accent-subtle);
+}
+
+.conv-cat-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.conv-cat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* ---- Main Converter Card ---- */
+.conv-card {
+    background: var(--bg-display);
+    border: 1px solid var(--bg-display-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* From / To rows */
+.conv-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.conv-field-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Unit selector dropdown */
+.conv-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--transition-fast);
+    appearance: auto;
+}
+
+.conv-select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+/* Value input */
+.conv-input {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 1.1rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    outline: none;
+    text-align: right;
+    transition: border-color var(--transition-fast);
+    width: 100%;
+}
+
+.conv-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.conv-input::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.85rem;
+}
+
+/* Conversion result display */
+.conv-result {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    text-align: right;
+    padding: 8px 10px;
+    background: var(--accent-subtle);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    transition: color var(--transition-fast), background var(--transition-fast);
+    word-break: break-all;
+}
+
+.conv-result--error {
+    color: var(--btn-clear-text);
+    background: var(--btn-clear-bg);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Swap button between the two rows */
+.conv-swap-btn {
+    align-self: center;
+    margin: -6px auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--accent-primary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    z-index: 1;
+}
+
+.conv-swap-btn:hover {
+    background: var(--accent-primary);
+    color: #fff;
+    transform: rotate(180deg);
+    box-shadow: 0 3px 10px var(--accent-subtle);
+}
+
+/* Formula / expression line */
+.conv-formula {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    text-align: center;
+    min-height: 18px;
+    padding: 2px 0;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+    word-break: break-all;
+}
+
+/* Copy button */
+.conv-copy-btn {
+    border: 1px solid var(--border-color);
+    background: var(--btn-fn-bg);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    align-self: center;
+}
+
+.conv-copy-btn:hover {
+    background: var(--accent-primary);
+    color: #fff;
+    border-color: var(--accent-primary);
+}
+
+/* ---- Numpad ---- */
+.conv-numpad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.conv-num-btn {
+    border: 1px solid var(--border-color);
+    background: var(--btn-num-bg);
+    color: var(--btn-num-text);
+    border-radius: var(--radius-md);
+    min-height: 48px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform var(--transition-fast), background var(--transition-fast);
+    touch-action: manipulation;
+    font-family: var(--font-mono);
+    box-shadow: var(--btn-num-shadow);
+}
+
+.conv-num-btn:hover {
+    background: var(--btn-num-hover);
+}
+
+.conv-num-btn:active {
+    transform: scale(0.94);
+}
+
+.conv-num-btn--equal {
+    background: var(--btn-equal-bg);
+    color: var(--btn-equal-text);
+    box-shadow: 0 3px 10px var(--accent-subtle);
+}
+
+.conv-num-btn--equal:hover {
+    background: var(--btn-equal-hover);
+}
+
+.conv-num-btn--clear {
+    background: var(--btn-clear-bg);
+    color: var(--btn-clear-text);
+}
+
+.conv-num-btn--back {
+    background: var(--btn-fn-bg);
+    color: var(--text-primary);
+}
+
+.conv-num-btn--empty {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    cursor: default;
+}
+
+/* Converter history items in the history panel */
+.conv-history-item {
+    border-left: 3px solid var(--accent-primary);
+    cursor: default;
+}
+
+.conv-history-item:hover {
+    transform: none;
+    border-color: var(--accent-primary);
+}
+
+/* ---- Responsive: mobile ---- */
+@media (max-width: 768px) {
+    .calculator-card.mode-converter {
+        max-width: 100%;
+    }
+
+    .conv-cat-btn {
+        padding: 6px 8px;
+        min-width: 52px;
+    }
+
+    .conv-cat-icon {
+        font-size: 1rem;
+    }
+
+    .conv-num-btn {
+        min-height: 44px;
+        font-size: 0.95rem;
+    }
+
+    .conv-row {
+        grid-template-columns: 36px 1fr 1fr;
+        gap: 6px;
+    }
+
+    .conv-result {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .conv-cat-label {
+        display: none;
+    }
+
+    .conv-cat-btn {
+        min-width: 40px;
+    }
+
+    .conv-num-btn {
+        min-height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .conv-row {
+        grid-template-columns: 32px 1fr 1fr;
+        gap: 5px;
+    }
+}
+
+/* ==========================================
+   GRAPHING MODE STYLES
+   ========================================== */
+
+.calculator-card.mode-graph {
+    max-width: 620px;
+    width: 100%;
+    padding: 14px 18px;
+    transition: max-width var(--transition-normal);
+}
+
+.graph-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Canvas Viewport Container */
+.graph-viewport-wrap {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    background: var(--bg-display);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.graph-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+/* Floating Canvas Controls Overlay */
+.graph-floating-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 5;
+}
+
+.graph-tool-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    transition: all var(--transition-fast);
+}
+
+.graph-tool-btn:hover {
+    background: var(--btn-fn-hover);
+    transform: scale(1.05);
+}
+
+.graph-tool-btn.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+    border-color: var(--accent-primary);
+}
+
+.graph-angle-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-fast);
+}
+
+.graph-angle-badge:hover {
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+/* Function Input Cards */
+.graph-inputs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.graph-fn-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-display);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    transition: border-color var(--transition-fast);
+}
+
+.graph-fn-row:focus-within {
+    border-color: var(--accent-primary);
+}
+
+.graph-fn-label {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.graph-fn-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.graph-fn-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    outline: none;
+    min-width: 0;
+}
+
+.graph-fn-input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.graph-fn-actions {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.graph-fn-visibility-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 3px 5px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    opacity: 0.85;
+    transition: opacity var(--transition-fast);
+}
+
+.graph-fn-visibility-btn:hover {
+    opacity: 1;
+}
+
+.graph-fn-toggle-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 3px 5px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    transition: color var(--transition-fast);
+}
+
+.graph-fn-toggle-btn:hover {
+    color: var(--text-primary);
+}
+
+.graph-fn-error {
+    font-size: 0.74rem;
+    color: var(--btn-danger-bg);
+    margin-top: -2px;
+    padding-left: 20px;
+}
+
+/* Secondary Function Add/Remove Row */
+.graph-add-fn-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all var(--transition-fast);
+}
+
+.graph-add-fn-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+/* Function Preset Quick Bar */
+.graph-presets-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+}
+
+.graph-preset-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.graph-preset-chip {
+    padding: 3px 9px;
+    background: var(--btn-fn-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+}
+
+.graph-preset-chip:hover {
+    background: var(--btn-fn-hover);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
+/* Compact Graph Keypad */
+.graph-keypad {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+}
+
+.graph-key-btn {
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    min-height: 36px;
+    font-size: 0.88rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 4px;
+    transition: all var(--transition-fast);
+}
+
+.graph-key-btn:hover {
+    background: var(--btn-fn-hover);
+    border-color: var(--accent-primary);
+}
+
+.graph-key-btn:active {
+    transform: scale(0.96);
+}
+
+.graph-key-btn.key-var {
+    color: var(--accent-primary);
+    font-weight: 700;
+}
+
+.graph-key-btn.key-plot {
+    background: var(--accent-primary);
+    color: #ffffff;
+    font-weight: 700;
+    border-color: var(--accent-primary);
+}
+
+.graph-key-btn.key-plot:hover {
+    background: var(--accent-hover);
+}
+
+/* Table of Values Drawer */
+.graph-table-drawer {
+    display: none;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+}
+
+.graph-table-drawer.active {
+    display: block;
+}
+
+.graph-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    text-align: center;
+}
+
+.graph-table th {
+    background: var(--bg-display);
+    padding: 8px 10px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.graph-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.graph-table tr:hover td {
+    background: var(--btn-fn-hover);
+}
+
+/* Mode Tag for Graph in History */
+.hist-mode-tag.mode-graph {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+@media (max-width: 600px) {
+    .calculator-card.mode-graph {
+        padding: 8px 10px;
+        max-width: 100%;
+    }
+
+    .graph-panel {
+        gap: 5px;
+    }
+
+    .graph-viewport-wrap {
+        height: clamp(160px, 24vh, 195px);
+    }
+
+    .graph-floating-controls {
+        top: 5px;
+        right: 5px;
+        gap: 3px;
+    }
+
+    .graph-tool-btn {
+        width: 25px;
+        height: 25px;
+        font-size: 0.78rem;
+        border-radius: 5px;
+    }
+
+    .graph-angle-badge {
+        bottom: 5px;
+        left: 5px;
+        font-size: 0.65rem;
+        padding: 2px 5px;
+    }
+
+    .graph-fn-row {
+        padding: 3px 6px;
+        gap: 5px;
+    }
+
+    .graph-fn-label {
+        font-size: 0.8rem;
+    }
+
+    .graph-fn-input {
+        font-size: 0.85rem;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .graph-presets-bar {
+        padding: 2px 0 4px 0;
+        gap: 3px;
+    }
+
+    .graph-preset-label {
+        display: none;
+    }
+
+    .graph-preset-chip {
+        padding: 2px 6px;
+        font-size: 0.72rem;
+    }
+
+    .graph-keypad {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 3px;
+    }
+
+    .graph-key-btn {
+        min-height: 30px;
+        font-size: 0.8rem;
+        padding: 1px;
+        border-radius: 5px;
+    }
+
+    .graph-analysis-panel {
+        width: 100%;
+        max-width: 100%;
+        max-height: 360px;
+        padding: 10px;
+    }
+}
+
+@media (max-height: 720px) {
+    .app-header {
+        margin-bottom: 6px;
+        padding: 2px 10px;
+    }
+
+    .calculator-card.mode-graph {
+        padding: 10px 14px;
+    }
+
+    .graph-viewport-wrap {
+        height: 220px;
+    }
+
+    .graph-key-btn {
+        min-height: 35px;
+    }
+}
+
+@media (max-height: 540px) {
+    .graph-viewport-wrap {
+        height: 170px;
+    }
+
+    .graph-key-btn {
+        min-height: 28px;
+    }
+}
+
+/* ==========================================================================
+   GRAPH ANALYSIS & CRITICAL POINTS SIDE PANEL
+   ========================================================================== */
+
+.graph-analysis-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 16px;
+    width: 320px;
+    max-height: 640px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+@media (max-width: 768px) {
+    .graph-analysis-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Converter Numeral System Hex Keypad Row & Disabled Keys */
+.conv-hex-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.conv-hex-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 700;
+    min-height: 40px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.conv-hex-btn:hover:not(:disabled) {
+    background: var(--btn-fn-hover);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
+.conv-hex-btn:disabled, .conv-num-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: var(--bg-display);
+    border-color: transparent;
+    color: var(--text-muted);
+}
+
+
+.analysis-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.analysis-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.analysis-icon {
+    font-size: 1.1rem;
+}
+
+.analysis-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.analysis-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.analysis-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.analysis-badge {
+    background: var(--btn-fn-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.analysis-kp-list, .analysis-notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.analysis-kp-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-display);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.analysis-kp-item:hover {
+    border-color: var(--accent-primary);
+    background: var(--btn-fn-hover);
+    transform: translateX(2px);
+}
+
+.analysis-kp-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.analysis-kp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.analysis-kp-dot.root { background: #059669; }
+.analysis-kp-dot.intercept { background: #2563eb; }
+.analysis-kp-dot.max { background: #d97706; }
+.analysis-kp-dot.min { background: #f59e0b; }
+.analysis-kp-dot.intersection { background: #7c3aed; }
+
+.analysis-kp-coords {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.analysis-note-card {
+    background: var(--bg-display);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-primary);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.analysis-note-card.asymptote-warning {
+    border-left-color: #d97706;
+}
+
+.analysis-note-card strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* Dynamic Functions List Enhancements */
+.graph-fn-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.graph-fn-visibility-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.graph-fn-visibility-btn:hover {
+    color: var(--text-primary);
+}
+
+.graph-fn-visibility-btn.hidden {
+    opacity: 0.45;
+}
+
+.graph-fn-row.hidden-fn {
+    opacity: 0.6;
+}
+
+
+/* ==========================================================================
+   SIDEBAR NAVIGATION
+   ========================================================================== */
+
+/* Hamburger icon button */
+.sidebar-hamburger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 18px;
+}
+
+.hamburger-icon span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: all var(--transition-fast);
+}
+
+/* Dimmed overlay behind sidebar */
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--modal-bg);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Sidebar panel — contrasting premium drawer sliding in from the left */
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 305px;
+    height: 100%;
+    background: linear-gradient(180deg, #fdf8ff 0%, #f5eefb 28%, #fdf2f8 100%);
+    color: #3d2a48;
+    border-right: 1px solid rgba(101, 78, 129, 0.12);
+    box-shadow: 22px 0 46px rgba(94, 61, 109, 0.14);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(-100%);
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.35) transparent;
+}
+
+[data-theme="dark"] .app-sidebar {
+    background: linear-gradient(180deg, #1b1028 0%, #241734 32%, #2d1e36 100%);
+    border-right: 1px solid rgba(216, 180, 254, 0.18);
+    box-shadow: 18px 0 48px rgba(27, 14, 38, 0.45);
+    color: #f5eefe;
+}
+
+.app-sidebar.open {
+    transform: translateX(0);
+}
+
+/* Desktop: keep sidebar permanently open, shift main content right */
+@media (min-width: 900px) {
+    .app-sidebar {
+        transform: translateX(0);
+    }
+
+    /* Hide hamburger & close controls on desktop (sidebar is always visible) */
+    .sidebar-hamburger,
+    .sidebar-close-btn {
+        display: none;
+    }
+
+    /* Sidebar overlay not needed on desktop */
+    .sidebar-overlay {
+        display: none;
+    }
+
+    /* Shift the entire app layout to the right of the permanent sidebar.
+       Constrain width so centered content stays centered in the remaining space. */
+    body {
+        margin-left: 305px;
+        width: calc(100vw - 305px);
+        max-width: calc(100vw - 305px);
+    }
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid rgba(109, 82, 126, 0.12);
+    background: rgba(255, 255, 255, 0.52);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+[data-theme="dark"] .sidebar-header {
+    background: rgba(37, 20, 45, 0.72);
+    border-bottom: 1px solid rgba(216, 180, 254, 0.12);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-icon-frame {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(196, 181, 253, 0.9), rgba(251, 207, 232, 0.9));
+    border: 1px solid rgba(168, 85, 247, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 24px rgba(168, 85, 247, 0.18);
+    flex-shrink: 0;
+}
+
+.sidebar-brand-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.35));
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sidebar-title {
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #3b224a;
+    line-height: 1.15;
+}
+
+[data-theme="dark"] .sidebar-title {
+    color: #f5ecff;
+}
+
+.sidebar-subtitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #9c59ad;
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .sidebar-subtitle {
+    color: #e9d5ff;
+}
+
+.sidebar-close-btn {
+    background: rgba(168, 85, 247, 0.08) !important;
+    border: 1px solid rgba(168, 85, 247, 0.2) !important;
+    color: #4a3358 !important;
+    transition: all var(--transition-fast);
+}
+
+.sidebar-close-btn:hover {
+    background: rgba(196, 181, 253, 0.22) !important;
+    color: #2d1635 !important;
+    transform: scale(1.05);
+}
+
+[data-theme="dark"] .sidebar-close-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(216, 180, 254, 0.2) !important;
+    color: #f5ecff !important;
+}
+
+/* Section labels */
+.sidebar-section-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8a6b96;
+    padding: 16px 18px 6px;
+}
+
+[data-theme="dark"] .sidebar-section-label {
+    color: #d8b4fe;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: rgba(122, 92, 142, 0.12);
+    margin: 10px 16px 4px;
+}
+
+/* Sidebar navigation list */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
+    gap: 3px;
+}
+
+/* Individual sidebar nav items */
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.2);
+    color: #4a3358;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+    position: relative;
+}
+
+[data-theme="dark"] .sidebar-nav-item {
+    background: rgba(255, 255, 255, 0.03);
+    color: #f3e8ff;
+}
+
+.sidebar-nav-item:hover {
+    background: linear-gradient(90deg, rgba(196, 181, 253, 0.18), rgba(251, 207, 232, 0.18));
+    color: #2d1836;
+    border-color: rgba(168, 85, 247, 0.14);
+    transform: translateX(3px);
+}
+
+[data-theme="dark"] .sidebar-nav-item:hover {
+    color: #ffffff;
+}
+
+.sidebar-nav-item.active {
+    background: linear-gradient(135deg, rgba(196, 181, 253, 0.34), rgba(251, 207, 232, 0.3));
+    color: #2c1636;
+    border-color: rgba(168, 85, 247, 0.25);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 #a78bfa, 0 10px 24px rgba(168, 85, 247, 0.12);
+}
+
+[data-theme="dark"] .sidebar-nav-item.active {
+    color: #fff;
+    box-shadow: inset 3px 0 0 #c4b5fd, 0 10px 24px rgba(168, 85, 247, 0.18);
+}
+
+.sidebar-nav-icon {
+    font-size: 1.15rem;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    color: #9d5de2;
+}
+
+.sidebar-nav-item:hover .sidebar-nav-icon,
+.sidebar-nav-item.active .sidebar-nav-icon {
+    color: #7c3aed;
+}
+
+[data-theme="dark"] .sidebar-nav-icon,
+[data-theme="dark"] .sidebar-nav-item:hover .sidebar-nav-icon,
+[data-theme="dark"] .sidebar-nav-item.active .sidebar-nav-icon {
+    color: #f5d0fe;
+}
+
+.sidebar-nav-text {
+    flex: 1;
+}
+
+.sidebar-nav-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #c084fc, #f9a8d4);
+    color: #2d1635;
+    letter-spacing: 0.06em;
+    box-shadow: 0 4px 10px rgba(192, 132, 252, 0.24);
+}
+
+/* Accent color row inside sidebar */
+.sidebar-accent-row {
+    padding: 8px 14px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-section-sublabel {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #8a6b96;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+[data-theme="dark"] .sidebar-section-sublabel {
+    color: #e9d5ff;
+}
+
+.sidebar-palette {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.sidebar-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-swatch:hover {
+    transform: scale(1.18);
+}
+
+.sidebar-swatch.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+/* About section */
+.sidebar-about {
+    padding: 8px 18px;
+    font-size: 0.8rem;
+    color: #7c5f82;
+    line-height: 1.6;
+}
+
+[data-theme="dark"] .sidebar-about {
+    color: #d8b4fe;
+}
+
+.sidebar-about p:first-child {
+    font-weight: 600;
+    color: #493154;
+}
+
+[data-theme="dark"] .sidebar-about p:first-child {
+    color: #f5ecff;
+}
+
+/* Install button in sidebar footer */
+.sidebar-footer {
+    padding: 14px 14px 22px;
+    margin-top: auto;
+    border-top: 1px solid rgba(101, 78, 129, 0.12);
+    background: rgba(255, 255, 255, 0.34);
+}
+
+[data-theme="dark"] .sidebar-footer {
+    background: rgba(28, 17, 35, 0.6);
+    border-top: 1px solid rgba(216, 180, 254, 0.12);
+}
+
+.sidebar-install-btn {
+    display: block;
+    width: 100%;
+    padding: 11px 16px;
+    background: linear-gradient(135deg, #f9a8d4 0%, #c4b5fd 55%, #ddd6fe 100%);
+    color: #2d1635;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(216, 180, 254, 0.32), 0 8px 18px rgba(251, 207, 232, 0.26);
+}
+
+.sidebar-install-btn.installed {
+    display: none;
+}
+
+.sidebar-install-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px var(--accent-subtle);
+}
+
+.sidebar-install-btn:active {
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   FORMULA SHEET DRAWER
+   ========================================================================== */
+
+/* Overlay behind formula sheet */
+.formula-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--modal-bg);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 400;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.formula-sheet-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Formula sheet drawer — slides in from right on desktop */
+.formula-sheet-drawer {
+    position: fixed;
+    z-index: 500;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -8px 0 40px rgba(0, 0, 0, 0.2);
+
+    /* Desktop: right panel */
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(600px, 96vw);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    transform: translateX(105%);
+}
+
+.formula-sheet-drawer.open {
+    transform: translateX(0);
+}
+
+/* Formula sheet header */
+.formula-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-card);
+    flex-shrink: 0;
+}
+
+.formula-sheet-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.formula-sheet-icon {
+    font-size: 1.4rem;
+}
+
+.formula-sheet-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Category tab bar */
+.formula-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border-color);
+    background: var(--bg-display);
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+}
+
+.formula-tabs::-webkit-scrollbar { display: none; }
+
+.formula-tab {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 12px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.formula-tab:hover {
+    color: var(--text-primary);
+    background: var(--btn-fn-bg);
+}
+
+.formula-tab.active {
+    color: var(--accent-primary);
+}
+
+.formula-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    border-radius: 2px 2px 0 0;
+}
+
+/* Scrollable formula content area */
+.formula-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+/* Formula section group */
+.formula-section {
+    margin-bottom: 28px;
+}
+
+.formula-section-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-primary);
+    padding: 6px 0 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.formula-section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--accent-primary);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Individual formula card */
+.formula-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--bg-display);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), transform var(--transition-fast);
+    position: relative;
+}
+
+.formula-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateX(3px);
+}
+
+.formula-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Formula name / label */
+.formula-name {
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* The math formula itself */
+.formula-math {
+    font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.formula-overbar {
+    display: inline-block;
+    text-decoration: overline;
+    text-decoration-skip-ink: none;
+    text-decoration-thickness: 1px;
+}
+
+/* Optional small note/condition below formula */
+.formula-note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+/* Copy badge that appears on hover */
+.formula-copy-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    background: var(--accent-subtle);
+    padding: 2px 7px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+
+.formula-card:hover .formula-copy-badge {
+    opacity: 1;
+}
+
+/* Copied feedback */
+.formula-card.copied {
+    border-color: #059669;
+}
+
+.formula-card.copied .formula-copy-badge {
+    opacity: 1;
+    background: rgba(5, 150, 105, 0.15);
+    color: #059669;
+}
+
+/* Mobile: formula sheet slides up from bottom */
+@media (max-width: 640px) {
+    .formula-sheet-drawer {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 90vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        transform: translateY(105%);
+        border-left: none;
+        border-right: none;
+    }
+
+    .formula-sheet-drawer.open {
+        transform: translateY(0);
+    }
+
+    .formula-content {
+        padding: 14px;
+    }
+
+    .formula-tab {
+        padding: 10px 14px;
+        font-size: 0.82rem;
+    }
+
+    .app-sidebar {
+        width: 280px;
+    }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .app-sidebar {
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .formula-sheet-drawer {
+    box-shadow: -8px 0 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Active state for header icon buttons */
+.icon-btn.active {
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
