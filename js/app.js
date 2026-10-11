@@ -38,7 +38,6 @@
     const btnPaletteModal = document.getElementById('btn-palette-modal');
     const btnKeyboardHelp = document.getElementById('btn-keyboard-help');
     const btnHistoryToggle = document.getElementById('btn-history-toggle');
-    const btnPwaInstall = document.getElementById('btn-pwa-install');
 
     // History & Steps Panel
     const historyPanel = document.getElementById('history-panel');
@@ -80,6 +79,127 @@
     let currentHistoryFilter = 'all'; // 'all' | 'basic' | 'scientific' | 'converter'
 
     let deferredInstallPrompt = null;
+
+    // Shared trigger for install action (defined early so it's accessible everywhere)
+    async function triggerInstall() {
+        const btnSidebarInstall = document.getElementById('btn-pwa-install-sidebar');
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isAndroid = /Android/.test(navigator.userAgent);
+        const isMac = /Macintosh/.test(navigator.userAgent);
+        
+        if (isIOS) {
+            openModal(iosGuideModal);
+            return;
+        }
+
+        if (deferredInstallPrompt) {
+            deferredInstallPrompt.prompt();
+            const choice = await deferredInstallPrompt.userChoice;
+            if (choice.outcome === 'accepted') {
+                if (btnSidebarInstall) btnSidebarInstall.classList.add('installed');
+            }
+            deferredInstallPrompt = null;
+        } else {
+            // Fallback for browsers that don't fire beforeinstallprompt (Firefox, Safari, etc.)
+            // Show platform-appropriate install guide
+            showInstallGuide(isAndroid, isMac);
+        }
+    }
+
+    function showInstallGuide(isAndroid, isMac) {
+        const modal = document.getElementById('ios-guide-modal');
+        if (!modal) return;
+        
+        const title = modal.querySelector('#ios-modal-title');
+        const content = modal.querySelector('.modal-card');
+        
+        if (isAndroid) {
+            title.textContent = '📲 Install Calculator App';
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h3 id="ios-modal-title" class="modal-title">📲 Install Calculator App</h3>
+                    <button type="button" class="modal-close-btn" data-close="ios-guide-modal" aria-label="Close modal">&#x00D7;</button>
+                </div>
+                <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+                    You can install this app directly on your Android device for fast offline use.
+                </div>
+                <div style="font-weight: 700; font-size: 0.84rem; color: var(--accent-primary); margin-bottom: 8px;">Android (Chrome / Edge / Firefox):</div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">1</span>
+                    <span>Open this page in <strong>Chrome</strong> or <strong>Edge</strong> browser.</span>
+                </div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">2</span>
+                    <span>Tap the <strong>⋮ menu</strong> > <strong>Install app</strong> or <strong>Add to Home screen</strong>.</span>
+                </div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">3</span>
+                    <span>Or look for the <strong>Install</strong> icon in the address bar.</span>
+                </div>
+            `;
+        } else if (isMac) {
+            title.textContent = '📲 Install Calculator App';
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h3 id="ios-modal-title" class="modal-title">📲 Install Calculator App</h3>
+                    <button type="button" class="modal-close-btn" data-close="ios-guide-modal" aria-label="Close modal">&#x00D7;</button>
+                </div>
+                <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+                    You can install this app on your Mac for fast offline use.
+                </div>
+                <div style="font-weight: 700; font-size: 0.84rem; color: var(--accent-primary); margin-bottom: 8px;">macOS (Safari / Chrome / Edge):</div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">1</span>
+                    <span>In <strong>Safari</strong>: Tap <strong>Share</strong> > <strong>Add to Dock</strong> or <strong>Add to Home Screen</strong>.</span>
+                </div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">2</span>
+                    <span>In <strong>Chrome/Edge</strong>: Click the <strong>Install</strong> icon in the address bar or ⋮ menu > <strong>Install Calyx</strong>.</span>
+                </div>
+            `;
+        } else {
+            title.textContent = '📲 Install Calculator App';
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h3 id="ios-modal-title" class="modal-title">📲 Install Calculator App</h3>
+                    <button type="button" class="modal-close-btn" data-close="ios-guide-modal" aria-label="Close modal">&#x00D7;</button>
+                </div>
+                <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+                    You can install this app directly on your phone, tablet, or PC for fast offline use.
+                </div>
+                <div style="font-weight: 700; font-size: 0.84rem; color: var(--accent-primary); margin-bottom: 8px;">Windows / Linux (Chrome / Edge / Firefox):</div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">1</span>
+                    <span>Open this page in <strong>Chrome</strong> or <strong>Edge</strong>.</span>
+                </div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">2</span>
+                    <span>Click the <strong>Install</strong> icon (⊕) in the address bar, or ⋮ menu > <strong>Install Calyx</strong>.</span>
+                </div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">3</span>
+                    <span>In <strong>Firefox</strong>: Click the <strong>Install</strong> icon in the address bar or ⋮ menu > <strong>Install</strong>.</span>
+                </div>
+                <div style="font-weight: 700; font-size: 0.84rem; color: var(--accent-primary); margin: 12px 0 8px;">iPhone & iPad (Safari):</div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">1</span>
+                    <span>Tap the <strong>Share</strong> button (box with upward arrow) in Safari.</span>
+                </div>
+                <div class="ios-guide-step">
+                    <span class="ios-step-num">2</span>
+                    <span>Scroll down and select <strong>Add to Home Screen</strong>.</span>
+                </div>
+            `;
+        }
+        
+        // Re-attach close button listener
+        const closeBtn = modal.querySelector('.modal-close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => modal.classList.remove('show');
+        }
+        
+        modal.classList.add('show');
+    }
 
     // ==========================================
     // INITIALIZATION & LIFECYCLE
@@ -1072,6 +1192,8 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then((reg) => {
                     console.log('ServiceWorker registered with scope:', reg.scope);
+                    // Check for updates periodically
+                    setInterval(() => reg.update(), 60 * 60 * 1000); // Check hourly
                 }).catch((err) => {
                     console.warn('ServiceWorker registration failed:', err);
                 });
@@ -1084,9 +1206,8 @@
 
         // Check if iOS
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        // If already running in standalone installed mode, hide install buttons
+        // If already running in standalone installed mode, hide install button
         if (isStandalone) {
-            if (btnPwaInstall) btnPwaInstall.classList.add('installed');
             if (btnSidebarInstall) btnSidebarInstall.classList.add('installed');
         }
 
@@ -1094,40 +1215,24 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredInstallPrompt = e;
+            // Show install button when prompt is available
+            if (btnSidebarInstall) btnSidebarInstall.classList.add('show');
         });
 
         // App installed event
         window.addEventListener('appinstalled', () => {
-            if (btnPwaInstall) btnPwaInstall.classList.add('installed');
             if (btnSidebarInstall) btnSidebarInstall.classList.add('installed');
             deferredInstallPrompt = null;
             console.log('Calculator PWA installed successfully');
         });
 
-        // Shared trigger for install action
-        async function triggerInstall() {
-            if (isIOS) {
-                openModal(iosGuideModal);
-                return;
+        // Check if PWA is installable after a delay (for browsers that don't fire beforeinstallprompt immediately)
+        setTimeout(() => {
+            if (!deferredInstallPrompt && !isStandalone && !isIOS) {
+                // Show install button anyway - user can click to trigger native browser install
+                if (btnSidebarInstall) btnSidebarInstall.classList.add('show');
             }
-
-            if (deferredInstallPrompt) {
-                deferredInstallPrompt.prompt();
-                const choice = await deferredInstallPrompt.userChoice;
-                if (choice.outcome === 'accepted') {
-                    if (btnPwaInstall) btnPwaInstall.classList.add('installed');
-                    if (btnSidebarInstall) btnSidebarInstall.classList.add('installed');
-                }
-                deferredInstallPrompt = null;
-            } else {
-                openModal(iosGuideModal);
-            }
-        }
-
-        // Handle header install button click
-        if (btnPwaInstall) {
-            btnPwaInstall.addEventListener('click', triggerInstall);
-        }
+        }, 3000);
     }
 
     // ==========================================
@@ -2269,21 +2374,9 @@
         // Sidebar PWA install
         const btnSidebarInstall = document.getElementById('btn-pwa-install-sidebar');
         if (btnSidebarInstall) {
-            btnSidebarInstall.addEventListener('click', async () => {
+            btnSidebarInstall.addEventListener('click', () => {
                 closeSidebar();
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                if (isIOS) { openModal(iosGuideModal); return; }
-                if (deferredInstallPrompt) {
-                    deferredInstallPrompt.prompt();
-                    const choice = await deferredInstallPrompt.userChoice;
-                    if (choice.outcome === 'accepted') {
-                        if (btnPwaInstall) btnPwaInstall.classList.add('installed');
-                        btnSidebarInstall.classList.add('installed');
-                    }
-                    deferredInstallPrompt = null;
-                } else {
-                    openModal(iosGuideModal);
-                }
+                triggerInstall();
             });
         }
 
