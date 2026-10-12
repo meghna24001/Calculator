@@ -959,6 +959,29 @@
         }
     }
 
+    function compileSingleExpression(subExpr, defaultAngleMode) {
+        let clean = naturalLanguageToMath(subExpr);
+        clean = resolvePercentages(clean, defaultAngleMode);
+        const tokens = tokenize(clean);
+        const processed = insertImplicitMultiplication(tokens);
+        // Verify syntax with test scope { x: 1, y: 1 }
+        const testParser = new Parser(processed, defaultAngleMode, null, { x: 1, y: 1 });
+        testParser.parseExpression();
+        if (testParser.peek()) {
+            throw new CalculationError(`Unexpected token "${testParser.peek().value}"`);
+        }
+        return function (scope = {}, angleMode = defaultAngleMode) {
+            try {
+                const s = Object.assign({ x: 0, y: 0 }, scope);
+                const parser = new Parser(processed, angleMode, null, s);
+                const val = parser.parseExpression();
+                return (typeof val === 'number' && Number.isFinite(val)) ? val : NaN;
+            } catch (e) {
+                return NaN;
+            }
+        };
+    }
+
     function compile(rawExpression, options = {}) {
         const defaultAngleMode = options.angleMode || 'RAD';
         if (!rawExpression || typeof rawExpression !== 'string' || rawExpression.trim() === '') {
@@ -970,34 +993,182 @@
 
         try {
             let expr = rawExpression.trim();
-            // Strip leading "y =" or "f(x) =" or "g(x) =" or "y="
-            expr = expr.replace(/^(?:y|f\s*\(\s*x\s*\)|g\s*\(\s*x\s*\))\s*=\s*/i, '');
-            expr = naturalLanguageToMath(expr);
-            expr = resolvePercentages(expr, defaultAngleMode);
-            const tokens = tokenize(expr);
-            const processedTokens = insertImplicitMultiplication(tokens);
 
-            // Test parse with x = 1 to verify syntax immediately
-            const testParser = new Parser(processedTokens, defaultAngleMode, null, { x: 1 });
-            testParser.parseExpression();
-            if (testParser.peek()) {
-                throw new CalculationError(`Unexpected token "${testParser.peek().value}"`);
+            // Normalize inequality symbols
+            expr = expr.replace(/≤/g, '<=').replace(/≥/g, '>=');
+
+            // Find relation operator: <=, >=, <, >, or =
+            const relMatch = expr.match(/(<=|>=|<|>|=)/);
+
+            if (!relMatch) {
+                // No relation operator -> pure explicit function y = expr
+                const evalFn = compileSingleExpression(expr, defaultAngleMode);
+                return {
+                    error: null,
+                    isInequality: false,
+                    isImplicit: false,
+                    isVertical: false,
+                    evaluate: evalFn
+                };
             }
 
+            const op = relMatch[1];
+            let lhsStr = expr.slice(0, relMatch.index).trim();
+            let rhsStr = expr.slice(relMatch.index + op.length).trim();
+
+            // Case 1: Empty LHS (e.g. `<= x^2 - 4` or `< 2x + 1`) -> implicit 'y'
+            if (!lhsStr) {
+                lhsStr = 'y';
+            }
+
+            // Case 2: LHS is simple "y" or "f(x)" or "g(x)" and RHS does NOT contain y
+            const isLhsJustY = /^(?:y|f\s*\(\s*x\s*\)|g\s*\(\s*x\s*\))$/i.test(lhsStr);
+            const rhsHasY = /\by\b/i.test(rhsStr);
+            if (isLhsJustY && !rhsHasY) {
+                const evalFn = compileSingleExpression(rhsStr, defaultAngleMode);
+                const isInequality = (op !== '=');
+                const isStrict = (op === '<' || op === '>');
+                const direction = (op === '<=' || op === '<') ? 'below' : ((op === '>=' || op === '>') ? 'above' : null);
+                return {
+                    error: null,
+                    isInequality: isInequality,
+                    isStrict: isStrict,
+                    direction: direction,
+                    inequalityOp: op,
+                    isImplicit: false,
+                    isVertical: false,
+                    evaluate: evalFn
+                };
+            }
+
+            // Case 3: LHS is simple "x" and RHS does NOT contain x or y (e.g. x = 4, x <= 2, x > -1)
+            const isLhsJustX = /^x$/i.test(lhsStr);
+            const rhsHasXorY = /\b[xy]\b/i.test(rhsStr);
+            if (isLhsJustX && !rhsHasXorY) {
+                const evalResult = evaluate(rhsStr, { angleMode: defaultAngleMode });
+                if (evalResult.error) {
+                    throw new CalculationError(evalResult.error);
+                }
+                const verticalX = evalResult.numericResult !== null ? evalResult.numericResult : evalResult.result;
+                if (typeof verticalX !== 'number' || !Number.isFinite(verticalX)) {
+                    throw new CalculationError('Invalid vertical line bound');
+                }
+                const isInequality = (op !== '=');
+                const isStrict = (op === '<' || op === '>');
+                const direction = (op === '<=' || op === '<') ? 'left' : ((op === '>=' || op === '>') ? 'right' : null);
+                return {
+                    error: null,
+                    isInequality: isInequality,
+                    isVertical: true,
+                    isImplicit: false,
+                    verticalX: verticalX,
+                    inequalityOp: op,
+                    direction: direction,
+                    isStrict: isStrict,
+                    evaluate: function () { return NaN; }
+                };
+            }
+
+            // Case 4: General multi-variable equation or inequation (e.g. 2x + y >= 30, x^2 + y^2 = 25)
+            const evalLHS = compileSingleExpression(lhsStr, defaultAngleMode);
+            const evalRHS = compileSingleExpression(rhsStr, defaultAngleMode);
+            const F = (x, y) => evalLHS({ x, y }) - evalRHS({ x, y });
+
+            // Check if F(x, y) is linear: a*x + b*y + c
+            const cVal = F(0, 0);
+            const aVal = F(1, 0) - cVal;
+            const bVal = F(0, 1) - cVal;
+
+            const isLinear = Number.isFinite(aVal) && Number.isFinite(bVal) && Number.isFinite(cVal) &&
+                Math.abs(F(2, 3) - (aVal * 2 + bVal * 3 + cVal)) < 1e-7 &&
+                Math.abs(F(-1, 2) - (aVal * (-1) + bVal * 2 + cVal)) < 1e-7 &&
+                Math.abs(F(3, -2) - (aVal * 3 + bVal * (-2) + cVal)) < 1e-7;
+
+            if (isLinear) {
+                const isInequality = (op !== '=');
+                const isStrict = (op === '<' || op === '>');
+
+                if (Math.abs(bVal) > 1e-9) {
+                    // Non-zero b: solve for y = slope * x + yIntercept
+                    const slope = -aVal / bVal;
+                    const yIntercept = -cVal / bVal;
+                    const xIntercept = Math.abs(aVal) > 1e-9 ? -cVal / aVal : null;
+
+                    // If b < 0, dividing by negative flips inequality
+                    let effOp = op;
+                    if (bVal < 0) {
+                        if (op === '<=') effOp = '>=';
+                        else if (op === '<') effOp = '>';
+                        else if (op === '>=') effOp = '<=';
+                        else if (op === '>') effOp = '<';
+                    }
+
+                    const direction = (effOp === '<=' || effOp === '<') ? 'below' :
+                                     ((effOp === '>=' || effOp === '>') ? 'above' : null);
+
+                    return {
+                        error: null,
+                        isInequality: isInequality,
+                        isStrict: isStrict,
+                        direction: direction,
+                        inequalityOp: effOp,
+                        isImplicit: false,
+                        isVertical: false,
+                        slope: slope,
+                        yIntercept: yIntercept,
+                        xIntercept: xIntercept,
+                        evaluate: function (scope) {
+                            return slope * scope.x + yIntercept;
+                        }
+                    };
+                } else if (Math.abs(aVal) > 1e-9) {
+                    // b is 0, vertical line: a*x + c op 0 => x op -c/a
+                    const verticalX = -cVal / aVal;
+                    let effOp = op;
+                    if (aVal < 0) {
+                        if (op === '<=') effOp = '>=';
+                        else if (op === '<') effOp = '>';
+                        else if (op === '>=') effOp = '<=';
+                        else if (op === '>') effOp = '<';
+                    }
+                    const direction = (effOp === '<=' || effOp === '<') ? 'left' :
+                                     ((effOp === '>=' || effOp === '>') ? 'right' : null);
+
+                    return {
+                        error: null,
+                        isInequality: isInequality,
+                        isVertical: true,
+                        isImplicit: false,
+                        verticalX: verticalX,
+                        direction: direction,
+                        isStrict: isStrict,
+                        inequalityOp: effOp,
+                        evaluate: function () { return NaN; }
+                    };
+                }
+            }
+
+            // Case 5: Non-linear implicit equation or inequation (e.g. x^2 + y^2 = 25, x^2 + y^2 <= 16)
             return {
                 error: null,
-                evaluate: function (scope = {}, angleMode = defaultAngleMode) {
-                    try {
-                        const parser = new Parser(processedTokens, angleMode, null, scope);
-                        const val = parser.parseExpression();
-                        if (typeof val === 'number' && Number.isFinite(val)) {
-                            return val;
-                        }
-                        return NaN;
-                    } catch (e) {
-                        return NaN;
+                isImplicit: true,
+                isInequality: (op !== '='),
+                inequalityOp: op,
+                isStrict: (op === '<' || op === '>'),
+                F: F,
+                test: function (x, y) {
+                    const val = F(x, y);
+                    if (!Number.isFinite(val)) return false;
+                    switch (op) {
+                        case '<=': return val <= 1e-7;
+                        case '<':  return val < -1e-7;
+                        case '>=': return val >= -1e-7;
+                        case '>':  return val > 1e-7;
+                        case '=':  return Math.abs(val) < 0.05;
+                        default:   return false;
                     }
-                }
+                },
+                evaluate: function () { return NaN; }
             };
         } catch (err) {
             return {

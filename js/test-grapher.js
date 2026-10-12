@@ -64,6 +64,75 @@ assert('Compile with f(x) = prefix', p9.error === null && p9.evaluate({ x: 3 }) 
 const pErr = MathParser.compile('x + * 2');
 assert('Invalid expression returns error message', typeof pErr.error === 'string');
 
+// 8. Inequality support
+const ineq1 = MathParser.compile('y <= x^2');
+assert('Compile y <= x^2 error is null', ineq1.error === null);
+assert('y <= x^2 isInequality flag is true', ineq1.isInequality === true);
+assert('y <= x^2 direction is below', ineq1.direction === 'below');
+assert('y <= x^2 isStrict is false', ineq1.isStrict === false);
+assert('Evaluate y <= x^2 boundary curve at x=3', ineq1.evaluate({ x: 3 }) === 9);
+
+const ineq2 = MathParser.compile('y < 2x + 1');
+assert('y < 2x + 1 isStrict is true', ineq2.isStrict === true);
+assert('y < 2x + 1 direction is below', ineq2.direction === 'below');
+
+const ineq3 = MathParser.compile('y >= sin(x)');
+assert('y >= sin(x) direction is above', ineq3.direction === 'above');
+assert('y >= sin(x) isStrict is false', ineq3.isStrict === false);
+
+const ineq4 = MathParser.compile('<= x^2 - 4');
+assert('<= x^2 - 4 implicit y direction is below', ineq4.isInequality === true && ineq4.direction === 'below');
+
+const ineq5 = MathParser.compile('y ≤ 3x');
+assert('y ≤ 3x unicode <= supported', ineq5.isInequality === true && ineq5.inequalityOp === '<=');
+
+const ineq6 = MathParser.compile('x <= 2');
+assert('x <= 2 vertical inequality detected', ineq6.isVertical === true && ineq6.verticalX === 2 && ineq6.direction === 'left');
+
+const ineq7 = MathParser.compile('x > -1');
+assert('x > -1 vertical inequality detected', ineq7.isVertical === true && ineq7.verticalX === -1 && ineq7.direction === 'right' && ineq7.isStrict === true);
+
+// 9. Multi-variable equations & inequations
+const eqMulti1 = MathParser.compile('2x + y >= 30');
+assert('Compile 2x + y >= 30 error is null', eqMulti1.error === null);
+assert('2x + y >= 30 isInequality is true', eqMulti1.isInequality === true);
+assert('2x + y >= 30 direction is above', eqMulti1.direction === 'above');
+assert('2x + y >= 30 slope is -2', Math.abs(eqMulti1.slope - (-2)) < 1e-9);
+assert('2x + y >= 30 yIntercept is 30', Math.abs(eqMulti1.yIntercept - 30) < 1e-9);
+assert('2x + y >= 30 xIntercept is 15', Math.abs(eqMulti1.xIntercept - 15) < 1e-9);
+assert('2x + y >= 30 evaluate at x=10 gives 10', Math.abs(eqMulti1.evaluate({ x: 10 }) - 10) < 1e-9);
+
+const eqMulti2 = MathParser.compile('2x + y = 30');
+assert('Compile 2x + y = 30 error is null', eqMulti2.error === null);
+assert('2x + y = 30 isInequality is false', eqMulti2.isInequality === false);
+assert('2x + y = 30 slope is -2', Math.abs(eqMulti2.slope - (-2)) < 1e-9);
+assert('2x + y = 30 evaluate at x=0 gives 30', eqMulti2.evaluate({ x: 0 }) === 30);
+
+const eqMulti3 = MathParser.compile('3x - 4y = 12');
+assert('Compile 3x - 4y = 12 error is null', eqMulti3.error === null);
+assert('3x - 4y = 12 slope is 0.75', Math.abs(eqMulti3.slope - 0.75) < 1e-9);
+assert('3x - 4y = 12 yIntercept is -3', Math.abs(eqMulti3.yIntercept - (-3)) < 1e-9);
+
+const eqMulti4 = MathParser.compile('x + y <= 5');
+assert('x + y <= 5 direction is below', eqMulti4.isInequality === true && eqMulti4.direction === 'below');
+
+const eqMulti5 = MathParser.compile('2x - 3y > 6');
+assert('2x - 3y > 6 dividing by negative flips to below', eqMulti5.isInequality === true && eqMulti5.direction === 'below' && eqMulti5.isStrict === true);
+
+// 10. Non-linear implicit relations
+const circleEq = MathParser.compile('x^2 + y^2 = 25');
+assert('Compile x^2 + y^2 = 25 error is null', circleEq.error === null);
+assert('x^2 + y^2 = 25 isImplicit is true', circleEq.isImplicit === true);
+assert('x^2 + y^2 = 25 isInequality is false', circleEq.isInequality === false);
+assert('x^2 + y^2 = 25 test on circle (3, 4)', circleEq.test(3, 4) === true);
+assert('x^2 + y^2 = 25 test outside (6, 0)', circleEq.test(6, 0) === false);
+
+const circleIneq = MathParser.compile('x^2 + y^2 <= 16');
+assert('Compile x^2 + y^2 <= 16 isImplicit is true', circleIneq.isImplicit === true);
+assert('x^2 + y^2 <= 16 isInequality is true', circleIneq.isInequality === true);
+assert('x^2 + y^2 <= 16 test inside (0, 0)', circleIneq.test(0, 0) === true);
+assert('x^2 + y^2 <= 16 test outside (5, 5)', circleIneq.test(5, 5) === false);
+
 console.log(`\nResults: ${passed} passed, ${failed} failed`);
 
 if (failed > 0) {

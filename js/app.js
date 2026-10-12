@@ -539,6 +539,7 @@
             { text: inverseMode ? 'nCr' : 'nPr', cls: 'scientific-btn', fn: () => appendInput(inverseMode ? 'C' : 'P'), label: inverseMode ? 'Combinations' : 'Permutations' },
             { text: '0', cls: 'number-btn', fn: () => appendInput('0'), label: '0' },
             { text: '.', cls: 'number-btn', fn: () => appendInput('.'), label: 'Decimal' },
+            { text: ',', cls: 'number-btn', fn: () => appendInput(','), label: 'Comma' },
             { text: '←', cls: 'backspace-btn', fn: () => backspace(), label: 'Backspace' },
             { text: '=', cls: 'equal-btn', fn: () => calculate(), label: 'Calculate result' }
         ];
@@ -559,6 +560,24 @@
     function setDisplay(val, isError = false) {
         display.textContent = val;
         display.classList.toggle('error', isError);
+
+        if (isError) {
+            // Error: fixed compact size, no wrap class needed
+            display.classList.remove('wrap');
+            display.style.removeProperty('--display-font-size');
+            return;
+        }
+
+        // Dynamic font scaling based on input length
+        const len = String(val).length;
+        let fontSize;
+        if      (len <= 10) { fontSize = '2rem';   display.classList.remove('wrap'); }
+        else if (len <= 16) { fontSize = '1.6rem';  display.classList.remove('wrap'); }
+        else if (len <= 22) { fontSize = '1.3rem';  display.classList.remove('wrap'); }
+        else if (len <= 30) { fontSize = '1.1rem';  display.classList.remove('wrap'); }
+        else                { fontSize = '0.95rem'; display.classList.add('wrap'); }
+
+        display.style.setProperty('--display-font-size', fontSize);
     }
 
     function isDigit(c) { return c.length === 1 && c >= '0' && c <= '9'; }
@@ -667,6 +686,12 @@
         }
         if (val === '²' || val === '^(-1)') {
             if (isDigit(last) || /[)πe]/.test(last)) setDisplay(cur + val);
+            return;
+        }
+        if (val === ',') {
+            if (cur === '') return;
+            if (last === '(' || last === ',' || OPERATORS.includes(last) || last === '.') return;
+            setDisplay(cur + ',');
             return;
         }
         setDisplay(cur + val);
@@ -796,15 +821,15 @@
     // ==========================================
 
     function prepareExpression(raw) {
-        // drop dangling operators / "(" / "." and auto-close open brackets
-        const expr = raw.trim().replace(/[\s+\-*\/^(.PC]+$/, '');
+        // drop dangling operators / "(" / "." / "," and auto-close open brackets
+        const expr = raw.trim().replace(/[\s+\-*\/^(.,PC]+$/, '');
         if (!expr) return '';
         return expr + ')'.repeat(openParenCount(expr));
     }
 
     const ERROR_RULES = [
-        [/divide by zero|mod by zero/i, "Can't divide by zero"],
-        [/factorial overflow/i, 'Too large: factorial works up to 170!'],
+        [/divide by zero|mod by zero/i, "Can't divide by Zero"],
+        [/factorial overflow/i, 'Too large: Factorial works up to 170!'],
         [/invalid factorial/i, 'Factorial needs a whole number, 0 or more'],
         [/permutation|combination/i, 'nPr / nCr need whole numbers with r ≤ n'],
         [/square root of negative/i, "Can't take the square root of a negative number"],
@@ -818,7 +843,7 @@
         [/percentage/i, 'Invalid use of %'],
         [/Unknown function(?: or variable)?: (.+)/i, (h) => `"${h[1]}" is not a known function`],
         [/Unexpected character: "(.+)"/i, (h) => `Unsupported character "${h[1]}"`],
-        [/unexpected end|expected token|expected "|unexpected token|unexpected extra/i, 'Incomplete or invalid expression'],
+        [/unexpected end|expected token|expected "|unexpected token|unexpected extra/i, 'Invalid Expression'],
     ];
 
     function friendlyError(msg) {
@@ -838,15 +863,19 @@
         const rawExpr = getDisplay().trim();
         if (!rawExpr) return;
 
+        // Fix #1: Auto-close unclosed parentheses before evaluation
+        const closedExpr = prepareExpression(rawExpr);
+        if (!closedExpr) return;
+
         try {
             // Run through our standalone MathParser module (Zero eval!)
-            const parseResult = MathParser.evaluate(rawExpr, {
+            const parseResult = MathParser.evaluate(closedExpr, {
                 angleMode: angleMode,
                 trackSteps: true
             });
 
             if (parseResult.error || parseResult.result === null) {
-                expressionDisplay.textContent = rawExpr + ' =';
+                expressionDisplay.textContent = closedExpr + ' =';
                 setDisplay(friendlyError(parseResult.error || 'Error'), true);
                 resultDisplayed = true;
                 hasError = true;
@@ -854,7 +883,8 @@
             }
             hasError = false;
             // Success: update displays and states
-            expressionDisplay.textContent = rawExpr + ' =';
+            // Show balanced expression (with auto-added closing brackets) in expression line
+            expressionDisplay.textContent = closedExpr + ' =';
             setDisplay(parseResult.formatted);
             resultDisplayed = true;
 
@@ -873,13 +903,13 @@
             fractionMode = 'decimal';
 
             // Save to persistent history
-            saveHistory(rawExpr, parseResult.formatted, lastSteps);
+            saveHistory(closedExpr, parseResult.formatted, lastSteps);
 
             // Render Steps view if visible
-            renderSteps(lastSteps, rawExpr, parseResult.formatted);
+            renderSteps(lastSteps, closedExpr, parseResult.formatted);
 
         } catch (err) {
-            expressionDisplay.textContent = rawExpr + ' =';
+            expressionDisplay.textContent = closedExpr + ' =';
             setDisplay('Something went wrong', true);
             resultDisplayed = true;
             hasError = true;
@@ -1281,6 +1311,13 @@
         if (key === '.') {
             e.preventDefault();
             appendInput('.');
+            return;
+        }
+
+        // Comma
+        if (key === ',') {
+            e.preventDefault();
+            appendInput(',');
             return;
         }
 
@@ -1898,6 +1935,10 @@
                 <button type="button" class="graph-preset-chip" data-preset="abs(x)">|x|</button>
                 <button type="button" class="graph-preset-chip" data-preset="2^x">2ˣ</button>
                 <button type="button" class="graph-preset-chip" data-preset="tan(x)">tan(x)</button>
+                <button type="button" class="graph-preset-chip" data-preset="2x + y >= 30">2x + y ≥ 30</button>
+                <button type="button" class="graph-preset-chip" data-preset="x^2 + y^2 = 25">x² + y² = 25</button>
+                <button type="button" class="graph-preset-chip" data-preset="y <= x^2 - 4">y ≤ x²−4</button>
+                <button type="button" class="graph-preset-chip" data-preset="x <= 2">x ≤ 2</button>
             </div>
 
             <!-- On-Screen Graph Keypad -->
@@ -1936,6 +1977,13 @@
                 <button type="button" class="graph-key-btn" data-key="0">0</button>
                 <button type="button" class="graph-key-btn" data-key=".">.</button>
                 <button type="button" class="graph-key-btn" data-key="switch_fn" title="Cycle focus between active functions">fₙ</button>
+
+                <button type="button" class="graph-key-btn key-var" data-key="y">y</button>
+                <button type="button" class="graph-key-btn" data-key="<">&lt;</button>
+                <button type="button" class="graph-key-btn" data-key="<=">&le;</button>
+                <button type="button" class="graph-key-btn" data-key=">">&gt;</button>
+                <button type="button" class="graph-key-btn" data-key=">=">&ge;</button>
+                <button type="button" class="graph-key-btn" data-key=",">,</button>
             </div>
         `;
 
@@ -1993,7 +2041,7 @@
             if (saveToHistory && hasValidFn) {
                 const visibleFns = graphFunctions.filter(f => f.visible && f.expr.trim());
                 if (visibleFns.length > 0) {
-                    const fnLabels = visibleFns.map((f, i) => `f${i + 1}(x) = ${f.expr}`).join(', ');
+                    const fnLabels = visibleFns.map((f, i) => `f${i + 1} = ${f.expr}`).join(', ');
                     const resSummary = `${visibleFns.length} function${visibleFns.length > 1 ? 's' : ''} plotted`;
                     saveHistory(
                         `📈 ${fnLabels}`,
@@ -2020,7 +2068,7 @@
 
             let html = `<thead><tr><th>x</th>`;
             activeFns.forEach((fn, idx) => {
-                html += `<th>f${idx + 1}(x)</th>`;
+                html += `<th>f${idx + 1}</th>`;
             });
             html += `</tr></thead><tbody>`;
 
@@ -2144,15 +2192,15 @@
 
         let html = '';
         graphFunctions.forEach((fn, idx) => {
-            const fnLabel = `f${idx + 1}(x)`;
+            const fnLabel = `f${idx + 1}`;
             html += `
                 <div class="graph-fn-item-wrap" data-fn-id="${fn.id}">
                     <div class="graph-fn-row ${fn.visible ? '' : 'hidden-fn'}" id="graph-row-${fn.id}">
                         <span class="graph-fn-label">
                             <span class="graph-fn-dot" style="background: ${fn.visible ? fn.color : '#94a3b8'};"></span>
-                            ${fnLabel} =
+                            ${fnLabel}
                         </span>
-                        <input type="text" class="graph-fn-input" data-fn-id="${fn.id}" value="${escapeHtml(fn.expr)}" placeholder="e.g. sin(x) or 2x + 1" autocomplete="off" spellcheck="false" />
+                        <input type="text" class="graph-fn-input" data-fn-id="${fn.id}" value="${escapeHtml(fn.expr)}" placeholder="e.g. 2x + y >= 30, sin(x), or x^2 - 4" autocomplete="off" spellcheck="false" />
                         <div class="graph-fn-actions">
                             <button type="button" class="graph-fn-visibility-btn ${fn.visible ? '' : 'hidden'}" data-toggle-visibility="${fn.id}" title="${fn.visible ? 'Hide curve' : 'Show curve'}">
                                 ${fn.visible ? '👁️' : '🚫'}

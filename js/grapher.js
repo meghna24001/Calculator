@@ -125,8 +125,37 @@ const Grapher = (function () {
                 };
             });
 
+            this.autoFitToFunctions();
             this.calculateKeyPoints();
             this.render();
+        }
+
+        autoFitToFunctions() {
+            // Only auto-expand if at default viewport bounds [-10, 10]
+            if (this.viewport.xMin === -10 && this.viewport.xMax === 10 &&
+                this.viewport.yMin === -10 && this.viewport.yMax === 10) {
+                let maxCoord = 10;
+                this.functions.forEach(f => {
+                    if (f.visible && f.compiled && !f.compiled.error) {
+                        if (Number.isFinite(f.compiled.yIntercept)) {
+                            maxCoord = Math.max(maxCoord, Math.abs(f.compiled.yIntercept));
+                        }
+                        if (Number.isFinite(f.compiled.xIntercept)) {
+                            maxCoord = Math.max(maxCoord, Math.abs(f.compiled.xIntercept));
+                        }
+                        if (Number.isFinite(f.compiled.verticalX)) {
+                            maxCoord = Math.max(maxCoord, Math.abs(f.compiled.verticalX));
+                        }
+                    }
+                });
+                if (maxCoord > 10) {
+                    const pad = Math.ceil(maxCoord * 1.25);
+                    this.viewport.xMin = -Math.round(pad * 0.3);
+                    this.viewport.xMax = pad;
+                    this.viewport.yMin = -Math.round(pad * 0.3);
+                    this.viewport.yMax = pad;
+                }
+            }
         }
 
         setAngleMode(mode) {
@@ -163,8 +192,9 @@ const Grapher = (function () {
 
             // 1. Single function features (Roots, Y-intercepts, Extrema)
             visibleFns.forEach((fn, fnIdx) => {
+                if (fn.compiled.isVertical || fn.compiled.isImplicit) return;
                 const evaluate = fn.compiled.evaluate;
-                const fnName = `f${fnIdx + 1}(x)`;
+                const fnName = `f${fnIdx + 1}`;
 
                 // Y-Intercept at x = 0
                 if (xMin <= 0 && xMax >= 0) {
@@ -256,6 +286,7 @@ const Grapher = (function () {
                 for (let j = i + 1; j < visibleFns.length; j++) {
                     const fn1 = visibleFns[i];
                     const fn2 = visibleFns[j];
+                    if (fn1.compiled.isVertical || fn2.compiled.isVertical || fn1.compiled.isImplicit || fn2.compiled.isImplicit) continue;
                     const diffEval = (scope) => fn1.compiled.evaluate(scope) - fn2.compiled.evaluate(scope);
 
                     let prevX = xMin;
@@ -331,7 +362,42 @@ const Grapher = (function () {
 
             visibleFns.forEach((fn, idx) => {
                 const expr = fn.expr.toLowerCase();
-                const fnName = `f${idx + 1}(x)`;
+                const fnName = `f${idx + 1}`;
+
+                if (fn.compiled.slope !== undefined) {
+                    notes.push({
+                        fnName: fnName,
+                        type: 'domain',
+                        title: 'Linear Equation / Relation',
+                        message: `Slope m = ${cleanNumber(fn.compiled.slope)}, y-intercept = ${cleanNumber(fn.compiled.yIntercept)}${fn.compiled.xIntercept !== null ? `, x-intercept = ${cleanNumber(fn.compiled.xIntercept)}` : ''}.`
+                    });
+                }
+                if (fn.compiled.isImplicit) {
+                    notes.push({
+                        fnName: fnName,
+                        type: 'domain',
+                        title: 'Implicit Relation',
+                        message: `Implicit 2D curve/region ${fn.expr} evaluated across coordinate grid.`
+                    });
+                }
+
+                if (fn.compiled.isInequality) {
+                    if (fn.compiled.isVertical) {
+                        notes.push({
+                            fnName: fnName,
+                            type: 'domain',
+                            title: 'Vertical Inequality',
+                            message: `Region shaded to the ${fn.compiled.direction} of x = ${fn.compiled.verticalX} (${fn.compiled.isStrict ? 'dashed / strict' : 'solid / inclusive'} boundary).`
+                        });
+                    } else if (!fn.compiled.isImplicit) {
+                        notes.push({
+                            fnName: fnName,
+                            type: 'domain',
+                            title: 'Inequality Region',
+                            message: `Region shaded ${fn.compiled.direction} curve (${fn.compiled.isStrict ? 'dashed / strict' : 'solid / inclusive'} boundary).`
+                        });
+                    }
+                }
 
                 if (expr.includes('tan(')) {
                     notes.push({
@@ -413,10 +479,16 @@ const Grapher = (function () {
                 this.drawGridAndAxes(colors);
             }
 
-            // 3. Plot Functions (with Asymptote & Singularity jump suppression)
+            // 3. Plot Functions, Equations & Inequalities (with Asymptote & Singularity jump suppression)
             this.functions.forEach((fn) => {
                 if (fn.visible && !fn.compiled.error) {
-                    this.drawFunctionCurve(fn.compiled.evaluate, fn.color);
+                    if (fn.compiled.isImplicit) {
+                        this.drawImplicitRelation(fn.compiled, fn.color);
+                    } else if (fn.compiled.isInequality) {
+                        this.drawInequality(fn.compiled, fn.color);
+                    } else {
+                        this.drawFunctionCurve(fn.compiled.evaluate, fn.color);
+                    }
                 }
             });
 
@@ -513,13 +585,18 @@ const Grapher = (function () {
             }
         }
 
-        drawFunctionCurve(evaluate, color) {
+        drawFunctionCurve(evaluate, color, lineDash = []) {
             const ctx = this.ctx;
             ctx.save();
             ctx.strokeStyle = color;
             ctx.lineWidth = 2.2;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
+            if (lineDash && lineDash.length > 0) {
+                ctx.setLineDash(lineDash);
+            } else {
+                ctx.setLineDash([]);
+            }
 
             ctx.beginPath();
             let isDrawing = false;
@@ -564,6 +641,209 @@ const Grapher = (function () {
 
                 prevScreenY = screenY;
                 prevWorldY = worldY;
+            }
+
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        drawInequality(compiled, color) {
+            const ctx = this.ctx;
+            ctx.save();
+
+            const shadeColor = hexToRgba(color, 0.22);
+            ctx.fillStyle = shadeColor;
+
+            if (compiled.isVertical) {
+                // Vertical inequality (e.g. x <= 2 or x > -1)
+                const c = compiled.verticalX;
+                const sx = this.toScreenX(c);
+
+                if (compiled.direction === 'left') {
+                    // Shade to the left of x = c
+                    const w = Math.min(Math.max(0, sx), this.width);
+                    if (w > 0) ctx.fillRect(0, 0, w, this.height);
+                } else {
+                    // Shade to the right of x = c
+                    const startX = Math.max(0, Math.min(this.width, sx));
+                    const w = this.width - startX;
+                    if (w > 0) ctx.fillRect(startX, 0, w, this.height);
+                }
+
+                // Vertical boundary line: solid for <= or >=, dashed for < or >
+                if (sx >= -10 && sx <= this.width + 10) {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2.2;
+                    ctx.lineCap = 'round';
+                    if (compiled.isStrict) {
+                        ctx.setLineDash([6, 6]);
+                    } else {
+                        ctx.setLineDash([]);
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(sx, 0);
+                    ctx.lineTo(sx, this.height);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+                return;
+            }
+
+            // Function inequality with respect to y (e.g. y <= x^2 or y > 2x + 1)
+            // 1. Shading: fill vertical strips from the curve to top/bottom viewport edge
+            const evaluate = compiled.evaluate;
+            for (let px = 0; px <= this.width; px++) {
+                const worldX = this.toWorldX(px);
+                const worldY = evaluate({ x: worldX });
+                if (Number.isFinite(worldY)) {
+                    const sy = this.toScreenY(worldY);
+                    if (compiled.direction === 'below') {
+                        // Shade below: from sy down to this.height
+                        const topY = Math.min(Math.max(0, sy), this.height);
+                        const h = this.height - topY;
+                        if (h > 0) ctx.fillRect(px, topY, 1, h);
+                    } else {
+                        // Shade above: from 0 down to sy
+                        const bottomY = Math.max(0, Math.min(this.height, sy));
+                        if (bottomY > 0) ctx.fillRect(px, 0, 1, bottomY);
+                    }
+                }
+            }
+
+            // 2. Boundary curve: solid for <= or >=, dashed for < or >
+            this.drawFunctionCurve(evaluate, color, compiled.isStrict ? [6, 6] : []);
+
+            ctx.restore();
+        }
+
+        drawImplicitRelation(compiled, color) {
+            const ctx = this.ctx;
+            ctx.save();
+
+            const width = this.width;
+            const height = this.height;
+            const F = compiled.F;
+
+            // 1. If inequality (<=, <, >=, >), shade the satisfied region
+            if (compiled.isInequality && typeof compiled.test === 'function') {
+                const shadeColor = hexToRgba(color, 0.22);
+                ctx.fillStyle = shadeColor;
+                const step = 3;
+                for (let px = 0; px < width; px += step) {
+                    const wx = this.toWorldX(px + step * 0.5);
+                    for (let py = 0; py < height; py += step) {
+                        const wy = this.toWorldY(py + step * 0.5);
+                        if (compiled.test(wx, wy)) {
+                            ctx.fillRect(px, py, step, step);
+                        }
+                    }
+                }
+            }
+
+            // 2. Draw zero-contour curve F(x, y) = 0 via Marching Squares
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (compiled.isStrict) {
+                ctx.setLineDash([6, 6]);
+            } else {
+                ctx.setLineDash([]);
+            }
+
+            const gridSize = 4;
+            const cols = Math.ceil(width / gridSize);
+            const rows = Math.ceil(height / gridSize);
+
+            const gridValues = new Float64Array((cols + 1) * (rows + 1));
+            for (let j = 0; j <= rows; j++) {
+                const wy = this.toWorldY(j * gridSize);
+                for (let i = 0; i <= cols; i++) {
+                    const wx = this.toWorldX(i * gridSize);
+                    gridValues[j * (cols + 1) + i] = F(wx, wy);
+                }
+            }
+
+            function interp(v1, v2) {
+                if (Math.abs(v2 - v1) < 1e-12) return 0.5;
+                const t = -v1 / (v2 - v1);
+                return Math.max(0, Math.min(1, t));
+            }
+
+            function drawSeg(p1, p2) {
+                ctx.moveTo(p1[0], p1[1]);
+                ctx.lineTo(p2[0], p2[1]);
+            }
+
+            ctx.beginPath();
+
+            for (let j = 0; j < rows; j++) {
+                const y0 = j * gridSize;
+                const y1 = Math.min((j + 1) * gridSize, height);
+
+                for (let i = 0; i < cols; i++) {
+                    const x0 = i * gridSize;
+                    const x1 = Math.min((i + 1) * gridSize, width);
+
+                    const vTL = gridValues[j * (cols + 1) + i];
+                    const vTR = gridValues[j * (cols + 1) + (i + 1)];
+                    const vBR = gridValues[(j + 1) * (cols + 1) + (i + 1)];
+                    const vBL = gridValues[(j + 1) * (cols + 1) + i];
+
+                    if (!Number.isFinite(vTL) || !Number.isFinite(vTR) ||
+                        !Number.isFinite(vBR) || !Number.isFinite(vBL)) {
+                        continue;
+                    }
+
+                    let mask = 0;
+                    if (vTL > 0) mask |= 8;
+                    if (vTR > 0) mask |= 4;
+                    if (vBR > 0) mask |= 2;
+                    if (vBL > 0) mask |= 1;
+
+                    if (mask === 0 || mask === 15) continue;
+
+                    const pTop = [x0 + interp(vTL, vTR) * (x1 - x0), y0];
+                    const pRight = [x1, y0 + interp(vTR, vBR) * (y1 - y0)];
+                    const pBottom = [x0 + interp(vBL, vBR) * (x1 - x0), y1];
+                    const pLeft = [x0, y0 + interp(vTL, vBL) * (y1 - y0)];
+
+                    switch (mask) {
+                        case 1:
+                        case 14:
+                            drawSeg(pLeft, pBottom);
+                            break;
+                        case 2:
+                        case 13:
+                            drawSeg(pBottom, pRight);
+                            break;
+                        case 3:
+                        case 12:
+                            drawSeg(pLeft, pRight);
+                            break;
+                        case 4:
+                        case 11:
+                            drawSeg(pTop, pRight);
+                            break;
+                        case 5:
+                            drawSeg(pLeft, pTop);
+                            drawSeg(pBottom, pRight);
+                            break;
+                        case 6:
+                        case 9:
+                            drawSeg(pTop, pBottom);
+                            break;
+                        case 7:
+                        case 8:
+                            drawSeg(pTop, pLeft);
+                            break;
+                        case 10:
+                            drawSeg(pTop, pRight);
+                            drawSeg(pLeft, pBottom);
+                            break;
+                    }
+                }
             }
 
             ctx.stroke();
@@ -856,6 +1136,16 @@ const Grapher = (function () {
             let minDiff = Infinity;
 
             visibleFns.forEach((fn, idx) => {
+                if (fn.compiled.isVertical) {
+                    const sx = this.toScreenX(fn.compiled.verticalX);
+                    const diff = Math.abs(sx - screenX);
+                    if (diff < minDiff && diff < 16) {
+                        minDiff = diff;
+                        bestFn = fn;
+                        bestY = this.toWorldY(screenY);
+                    }
+                    return;
+                }
                 const y = fn.compiled.evaluate({ x: worldX });
                 if (Number.isFinite(y)) {
                     const sy = this.toScreenY(y);
@@ -871,12 +1161,15 @@ const Grapher = (function () {
             if (bestFn !== null && Number.isFinite(bestY)) {
                 const fnIndex = this.functions.indexOf(bestFn);
                 const fnName = `f${fnIndex + 1}`;
+                const traceLabel = bestFn.compiled.isVertical
+                    ? `${fnName}: x = ${cleanNumber(bestFn.compiled.verticalX)} (${bestFn.compiled.inequalityOp})`
+                    : `${fnName}: (${cleanNumber(worldX)}, ${cleanNumber(bestY)})`;
                 this.tracePoint = {
-                    screenX: screenX,
+                    screenX: bestFn.compiled.isVertical ? this.toScreenX(bestFn.compiled.verticalX) : screenX,
                     screenY: this.toScreenY(bestY),
-                    worldX: cleanNumber(worldX),
+                    worldX: bestFn.compiled.isVertical ? bestFn.compiled.verticalX : cleanNumber(worldX),
                     worldY: cleanNumber(bestY),
-                    label: `${fnName}: (${cleanNumber(worldX)}, ${cleanNumber(bestY)})`,
+                    label: traceLabel,
                     color: bestFn.color,
                     isCritical: false
                 };
@@ -898,6 +1191,8 @@ const Grapher = (function () {
             for (let x = start; x <= end + 1e-9; x += step) {
                 const rx = cleanNumber(x);
                 const values = activeFns.map(fn => {
+                    if (fn.compiled.isVertical) return `x = ${fn.compiled.verticalX}`;
+                    if (fn.compiled.isImplicit) return 'Implicit';
                     const y = fn.compiled.evaluate({ x: rx });
                     return Number.isFinite(y) ? cleanNumber(y) : 'Undefined';
                 });
@@ -956,6 +1251,20 @@ const Grapher = (function () {
         const dx = touches[0].clientX - touches[1].clientX;
         const dy = touches[0].clientY - touches[1].clientY;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function hexToRgba(hex, alpha = 0.22) {
+        if (!hex || typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+        let c = hex.replace('#', '');
+        if (c.length === 3) {
+            c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+        }
+        const num = parseInt(c, 16);
+        if (isNaN(num)) return `rgba(59, 130, 246, ${alpha})`;
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     return {

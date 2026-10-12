@@ -89,6 +89,9 @@ assert("range(2, 10, 5)", MathParser.evaluate("range(2, 10, 5)").result, 8);
 assert("lcm(4, 6)", MathParser.evaluate("lcm(4, 6)").result, 12);
 assert("hcf(12, 18)", MathParser.evaluate("hcf(12, 18)").result, 6);
 assert("mod(17, 5)", MathParser.evaluate("mod(17, 5)").result, 2);
+assert("root(3, 27) with comma", MathParser.evaluate("root(3, 27)").result, 3);
+assert("mean(10,20,30) without spaces", MathParser.evaluate("mean(10,20,30)").result, 20);
+assert("mod(29,7) without spaces", MathParser.evaluate("mod(29,7)").result, 1);
 
 // 9. Fractions
 const f1 = MathParser.decimalToFraction(3.5);
