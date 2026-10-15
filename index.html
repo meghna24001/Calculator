@@ -101,11 +101,57 @@
 
         <div class="sidebar-section-label">Appearance</div>
         <nav class="sidebar-nav">
-            <button id="btn-sidebar-theme" class="sidebar-nav-item" aria-label="Toggle theme">
-                <span class="sidebar-nav-icon" id="sidebar-theme-icon">🌙</span>
-                <span class="sidebar-nav-text" id="sidebar-theme-label">Switch to Dark Mode</span>
-            </button>
-            <div class="sidebar-accent-row">
+            <div class="sidebar-theme-presets">
+                <button class="theme-preset-btn active" data-theme-preset="light" aria-label="Light theme">
+                    <div class="theme-preset-swatch">
+                        <span style="background:#f1f5f9"></span>
+                        <span style="background:#ffffff"></span>
+                        <span style="background:#2563eb"></span>
+                    </div>
+                    <span>☀️ Light</span>
+                </button>
+                <button class="theme-preset-btn" data-theme-preset="dark" aria-label="Dark theme">
+                    <div class="theme-preset-swatch">
+                        <span style="background:#090d16"></span>
+                        <span style="background:#131c2e"></span>
+                        <span style="background:#2563eb"></span>
+                    </div>
+                    <span>🌙 Dark</span>
+                </button>
+                <button class="theme-preset-btn" data-theme-preset="midnight" aria-label="Midnight theme">
+                    <div class="theme-preset-swatch">
+                        <span style="background:#080c18"></span>
+                        <span style="background:#0f1629"></span>
+                        <span style="background:#818cf8"></span>
+                    </div>
+                    <span>🌌 Midnight</span>
+                </button>
+                <button class="theme-preset-btn" data-theme-preset="pastel" aria-label="Pastel theme">
+                    <div class="theme-preset-swatch">
+                        <span style="background:#fdf4ff"></span>
+                        <span style="background:#e9d5ff"></span>
+                        <span style="background:#9333ea"></span>
+                    </div>
+                    <span>🌸 Pastel</span>
+                </button>
+                <button class="theme-preset-btn" data-theme-preset="high-contrast" aria-label="High Contrast theme">
+                    <div class="theme-preset-swatch">
+                        <span style="background:#000000"></span>
+                        <span style="background:#ffffff; border:1px solid #555"></span>
+                        <span style="background:#ffdd00"></span>
+                    </div>
+                    <span>⚡ High Contrast</span>
+                </button>
+                <button class="theme-preset-btn" data-theme-preset="synthwave" aria-label="Synthwave theme">
+                    <div class="theme-preset-swatch">
+                        <span style="background:#0d0221"></span>
+                        <span style="background:#4cc9f0"></span>
+                        <span style="background:#f72585"></span>
+                    </div>
+                    <span>🎹 Synthwave</span>
+                </button>
+            </div>
+            <div class="sidebar-accent-row" style="margin-top:12px;">
                 <span class="sidebar-section-sublabel">Accent Color</span>
                 <div class="sidebar-palette">
                     <button class="sidebar-swatch active" data-accent-val="blue"    style="background:#2563eb" title="Blue"    aria-label="Blue accent"></button>

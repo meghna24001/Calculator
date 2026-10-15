@@ -149,6 +149,229 @@
 }
 
 /* ==========================================================================
+   CUSTOM FULL THEME PRESETS
+   ========================================================================== */
+
+/* ─── Midnight Dark ─── Deep navy / indigo palette */
+[data-theme="midnight"] {
+    --accent-primary: #818cf8;
+    --accent-hover: #6366f1;
+    --accent-active: #4f46e5;
+    --accent-subtle: rgba(129, 140, 248, 0.15);
+    --accent-text: #ffffff;
+
+    --bg-canvas: #080c18;
+    --bg-card: #0f1629;
+    --bg-display: #0a1020;
+    --bg-display-border: #1e2a4a;
+    --border-color: #1e2a4a;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #475569;
+
+    --btn-num-bg: #141d38;
+    --btn-num-text: #e2e8f0;
+    --btn-num-hover: #1e2a50;
+    --btn-num-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+
+    --btn-op-bg: #1e2a6e;
+    --btn-op-text: #c7d2fe;
+    --btn-op-hover: #2d3d9e;
+
+    --btn-fn-bg: #111828;
+    --btn-fn-text: #94a3b8;
+    --btn-fn-hover: #1a2540;
+
+    --btn-clear-bg: #3b1040;
+    --btn-clear-text: #f0abfc;
+    --btn-clear-hover: #52145a;
+
+    --panel-bg: #0f1629;
+    --panel-border: #1e2a4a;
+    --modal-bg: rgba(0, 0, 0, 0.78);
+    --card-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0,0,0,0.5);
+}
+
+/* ─── Pastel Light ─── Soft cream / lavender / rose palette */
+[data-theme="pastel"] {
+    --accent-primary: #9333ea;
+    --accent-hover: #7e22ce;
+    --accent-active: #6b21a8;
+    --accent-subtle: rgba(147, 51, 234, 0.1);
+    --accent-text: #ffffff;
+
+    --bg-canvas: #fdf4ff;
+    --bg-card: #ffffff;
+    --bg-display: #fef9ff;
+    --bg-display-border: #e9d5ff;
+    --border-color: #e9d5ff;
+    --text-primary: #3b0764;
+    --text-secondary: #7c3aed;
+    --text-muted: #a78bfa;
+
+    --btn-num-bg: #faf5ff;
+    --btn-num-text: #4c1d95;
+    --btn-num-hover: #ede9fe;
+    --btn-num-shadow: 0 1px 3px rgba(109, 40, 217, 0.1);
+
+    --btn-op-bg: #f3e8ff;
+    --btn-op-text: #6d28d9;
+    --btn-op-hover: #ddd6fe;
+
+    --btn-fn-bg: #fdf4ff;
+    --btn-fn-text: #7e22ce;
+    --btn-fn-hover: #f3e8ff;
+
+    --btn-clear-bg: #ffe4e6;
+    --btn-clear-text: #9f1239;
+    --btn-clear-hover: #fecdd3;
+
+    --panel-bg: #ffffff;
+    --panel-border: #e9d5ff;
+    --modal-bg: rgba(59, 7, 100, 0.35);
+    --card-shadow: 0 8px 24px -4px rgba(147, 51, 234, 0.15), 0 4px 8px rgba(147,51,234,0.08);
+}
+
+/* ─── High Contrast ─── Pure black / white for accessibility */
+[data-theme="high-contrast"] {
+    --accent-primary: #ffdd00;
+    --accent-hover: #f0ca00;
+    --accent-active: #d4b200;
+    --accent-subtle: rgba(255, 221, 0, 0.2);
+    --accent-text: #000000;
+
+    --bg-canvas: #000000;
+    --bg-card: #0a0a0a;
+    --bg-display: #000000;
+    --bg-display-border: #ffffff;
+    --border-color: #ffffff;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
+
+    --btn-num-bg: #111111;
+    --btn-num-text: #ffffff;
+    --btn-num-hover: #222222;
+    --btn-num-shadow: 0 0 0 1px #ffffff;
+
+    --btn-op-bg: #1a1a1a;
+    --btn-op-text: #ffdd00;
+    --btn-op-hover: #2a2a2a;
+
+    --btn-fn-bg: #0a0a0a;
+    --btn-fn-text: #cccccc;
+    --btn-fn-hover: #1a1a1a;
+
+    --btn-clear-bg: #330000;
+    --btn-clear-text: #ff4444;
+    --btn-clear-hover: #440000;
+
+    --panel-bg: #000000;
+    --panel-border: #ffffff;
+    --modal-bg: rgba(0, 0, 0, 0.9);
+    --card-shadow: 0 0 0 2px #ffffff;
+}
+
+/* ─── Synthwave ─── Neon pink / cyan / purple on dark */
+[data-theme="synthwave"] {
+    --accent-primary: #f72585;
+    --accent-hover: #d4006e;
+    --accent-active: #b5005c;
+    --accent-subtle: rgba(247, 37, 133, 0.18);
+    --accent-text: #ffffff;
+
+    --bg-canvas: #0d0221;
+    --bg-card: #140333;
+    --bg-display: #0a0118;
+    --bg-display-border: #3a0a6e;
+    --border-color: #3a0a6e;
+    --text-primary: #e2f3ff;
+    --text-secondary: #7b2fff;
+    --text-muted: #5a2d82;
+
+    --btn-num-bg: #1a0540;
+    --btn-num-text: #e2f3ff;
+    --btn-num-hover: #240760;
+    --btn-num-shadow: 0 1px 6px rgba(247, 37, 133, 0.2);
+
+    --btn-op-bg: #2d0758;
+    --btn-op-text: #4cc9f0;
+    --btn-op-hover: #3d0a78;
+
+    --btn-fn-bg: #110330;
+    --btn-fn-text: #a78bfa;
+    --btn-fn-hover: #1e0545;
+
+    --btn-clear-bg: #2a0020;
+    --btn-clear-text: #ff4da6;
+    --btn-clear-hover: #3a002c;
+
+    --panel-bg: #140333;
+    --panel-border: #3a0a6e;
+    --modal-bg: rgba(0, 0, 0, 0.85);
+    --card-shadow: 0 0 40px rgba(247, 37, 133, 0.2), 0 4px 16px rgba(76, 201, 240, 0.1);
+}
+
+/* Synthwave glowing accent effect on buttons */
+[data-theme="synthwave"] .equal-btn {
+    box-shadow: 0 0 16px rgba(247, 37, 133, 0.5);
+}
+[data-theme="synthwave"] .operator-btn {
+    text-shadow: 0 0 8px rgba(76, 201, 240, 0.8);
+}
+
+/* ─── Theme Preset Picker (sidebar) ─── */
+.sidebar-theme-presets {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.theme-preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--btn-fn-bg);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+    width: 100%;
+}
+
+.theme-preset-btn:hover {
+    border-color: var(--accent-primary);
+    background: var(--accent-subtle);
+}
+
+.theme-preset-btn.active {
+    border-color: var(--accent-primary);
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    font-weight: 700;
+}
+
+.theme-preset-swatch {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.theme-preset-swatch span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ==========================================================================
    RESET & LAYOUT BASE
    ========================================================================== */
 

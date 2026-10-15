@@ -290,24 +290,44 @@
         applyAccent(savedAccent);
     }
 
+    // Meta theme-color map for each preset
+    const THEME_META_COLORS = {
+        'light':         '#f1f5f9',
+        'dark':          '#090d16',
+        'midnight':      '#080c18',
+        'pastel':        '#fdf4ff',
+        'high-contrast': '#000000',
+        'synthwave':     '#0d0221',
+    };
+
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem(STORAGE_KEY_THEME, theme);
+
+        // Update legacy header theme toggle if it still exists
         if (btnThemeToggle) {
-            btnThemeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-            btnThemeToggle.setAttribute('title', theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme');
+            const isDarkVariant = ['dark', 'midnight', 'synthwave'].includes(theme);
+            btnThemeToggle.textContent = isDarkVariant ? '☀️' : '🌙';
+            btnThemeToggle.setAttribute('title', isDarkVariant ? 'Switch to Light Theme' : 'Switch to Dark Theme');
         }
+
+        // Update sidebar theme preset buttons active state
+        document.querySelectorAll('.theme-preset-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.themePreset === theme);
+        });
 
         // Update meta theme-color for browser chrome / status bar
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', theme === 'dark' ? '#090d16' : '#f1f5f9');
+            metaThemeColor.setAttribute('content', THEME_META_COLORS[theme] || '#f1f5f9');
         }
     }
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        // Simple toggle cycles between light and dark only (keyboard shortcut)
+        const isDark = ['dark', 'midnight', 'synthwave'].includes(currentTheme);
+        applyTheme(isDark ? 'light' : 'dark');
     }
 
     function applyAccent(accent) {
@@ -316,6 +336,11 @@
 
         // Update active palette swatch in modal
         document.querySelectorAll('.palette-swatch').forEach(swatch => {
+            swatch.classList.toggle('active', swatch.dataset.accentVal === accent);
+        });
+
+        // Update active palette swatch in sidebar
+        document.querySelectorAll('.sidebar-swatch').forEach(swatch => {
             swatch.classList.toggle('active', swatch.dataset.accentVal === accent);
         });
     }
@@ -550,26 +575,67 @@
     }
 
     // ==========================================
-    // DISPLAY & INPUT OPERATIONS
+    // DISPLAY & INPUT OPERATIONS (WITH PRETTY PRINT)
     // ==========================================
 
+    const SUPERSCRIPT_MAP = {
+        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+        '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+        '+': '⁺', '-': '⁻', '(': '⁽', ')': '⁾', 'n': 'ⁿ', 'x': 'ˣ', 'y': 'ʸ'
+    };
+
+    function toSuperscripts(str) {
+        return String(str).split('').map(c => SUPERSCRIPT_MAP[c] || c).join('');
+    }
+
+    function prettyPrint(raw) {
+        if (!raw) return '';
+        let s = String(raw);
+
+        // Auto-format powers/exponents:
+        // 1. ^(-1), ^(12), ^(-5)
+        s = s.replace(/\^\(([0-9+\-nxy]+)\)/g, (_, exp) => toSuperscripts(exp));
+        // 2. ^2, ^3, ^10
+        s = s.replace(/\^([0-9]+)/g, (_, exp) => toSuperscripts(exp));
+        // 3. ^-(1|2...)
+        s = s.replace(/\^(-[0-9]+)/g, (_, exp) => toSuperscripts(exp));
+
+        // Auto-format functions & symbols:
+        // sqrt( -> √(
+        s = s.replace(/\bsqrt\(/gi, '√(');
+        // cbrt( -> ∛(
+        s = s.replace(/\bcbrt\(/gi, '∛(');
+
+        // Multiplication operator: * -> ×
+        s = s.replace(/\*/g, '×');
+
+        return s;
+    }
+
+    let rawExpression = '';
+
     function getDisplay() {
-        return display.textContent || '';
+        if (hasError) return display.textContent || '';
+        return rawExpression;
     }
 
     function setDisplay(val, isError = false) {
-        display.textContent = val;
-        display.classList.toggle('error', isError);
-
         if (isError) {
-            // Error: fixed compact size, no wrap class needed
+            rawExpression = '';
+            display.textContent = val;
+            display.classList.add('error');
             display.classList.remove('wrap');
             display.style.removeProperty('--display-font-size');
             return;
         }
 
-        // Dynamic font scaling based on input length
-        const len = String(val).length;
+        display.classList.remove('error');
+        rawExpression = String(val == null ? '' : val);
+        const formatted = prettyPrint(rawExpression);
+        display.textContent = formatted;
+
+        // Dynamic font scaling based on displayed text length
+        const len = formatted.length;
         let fontSize;
         if      (len <= 10) { fontSize = '2rem';   display.classList.remove('wrap'); }
         else if (len <= 16) { fontSize = '1.6rem';  display.classList.remove('wrap'); }
@@ -875,7 +941,7 @@
             });
 
             if (parseResult.error || parseResult.result === null) {
-                expressionDisplay.textContent = closedExpr + ' =';
+                expressionDisplay.textContent = prettyPrint(closedExpr) + ' =';
                 setDisplay(friendlyError(parseResult.error || 'Error'), true);
                 resultDisplayed = true;
                 hasError = true;
@@ -884,7 +950,7 @@
             hasError = false;
             // Success: update displays and states
             // Show balanced expression (with auto-added closing brackets) in expression line
-            expressionDisplay.textContent = closedExpr + ' =';
+            expressionDisplay.textContent = prettyPrint(closedExpr) + ' =';
             setDisplay(parseResult.formatted);
             resultDisplayed = true;
 
@@ -909,7 +975,7 @@
             renderSteps(lastSteps, closedExpr, parseResult.formatted);
 
         } catch (err) {
-            expressionDisplay.textContent = closedExpr + ' =';
+            expressionDisplay.textContent = prettyPrint(closedExpr) + ' =';
             setDisplay('Something went wrong', true);
             resultDisplayed = true;
             hasError = true;
@@ -1130,7 +1196,7 @@
 
             const exprEl = document.createElement('div');
             exprEl.className = 'hist-expr';
-            exprEl.textContent = itemMode === 'converter' || itemMode === 'graph' ? item.expr : `${item.expr} =`;
+            exprEl.textContent = itemMode === 'converter' || itemMode === 'graph' ? item.expr : `${prettyPrint(item.expr)} =`;
 
             const modeTag = document.createElement('span');
             modeTag.className = `hist-mode-tag mode-${itemMode}`;
@@ -1201,7 +1267,7 @@
                     if (currentMode !== itemMode && (itemMode === 'basic' || itemMode === 'scientific')) {
                         setMode(itemMode);
                     }
-                    expressionDisplay.textContent = item.expr;
+                    expressionDisplay.textContent = prettyPrint(item.expr) + ' =';
                     setDisplay(String(item.res));
                     resultDisplayed = true;
                     lastResult = item.res;
@@ -1227,7 +1293,7 @@
         intro.style.fontSize = '0.82rem';
         intro.style.color = 'var(--text-secondary)';
         intro.style.marginBottom = '6px';
-        intro.textContent = `Evaluating: ${originalExpr}`;
+        intro.textContent = `Evaluating: ${prettyPrint(originalExpr)}`;
         stepsList.appendChild(intro);
 
         steps.forEach(s => {
@@ -1239,7 +1305,7 @@
             header.textContent = `Step ${s.step}`;
 
             const detail = document.createElement('div');
-            detail.textContent = `${s.expression}  ➜  ${s.result}`;
+            detail.textContent = `${prettyPrint(s.expression)}  ➜  ${prettyPrint(String(s.result))}`;
 
             card.appendChild(header);
             card.appendChild(detail);
@@ -1250,7 +1316,7 @@
         finalCard.className = 'step-card';
         finalCard.style.borderLeftColor = 'var(--text-primary)';
         finalCard.style.fontWeight = '700';
-        finalCard.innerHTML = `<span style="color: var(--text-secondary);">Final Result:</span> ${finalRes}`;
+        finalCard.innerHTML = `<span style="color: var(--text-secondary);">Final Result:</span> ${prettyPrint(String(finalRes))}`;
         stepsList.appendChild(finalCard);
     }
 
@@ -2525,9 +2591,20 @@
         if (btnClose) btnClose.addEventListener('click', closeSidebar);
         sidebarOverlay.addEventListener('click', closeSidebar);
 
-        // Sync sidebar theme button
+        // Sidebar theme preset buttons
+        document.querySelectorAll('.theme-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.dataset.themePreset;
+                if (preset) {
+                    applyTheme(preset);
+                }
+            });
+        });
+
+        // Sync legacy sidebar theme button if present
         function syncSidebarTheme() {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const isDark = ['dark', 'midnight', 'synthwave'].includes(current);
             const icon  = document.getElementById('sidebar-theme-icon');
             const label = document.getElementById('sidebar-theme-label');
             if (icon)  icon.textContent  = isDark ? '☀️' : '🌙';

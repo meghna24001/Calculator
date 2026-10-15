@@ -369,9 +369,27 @@
                 i++;
                 continue;
             }
-            if (ch === '²') {
-                tokens.push({ type: TOKEN_POSTFIX, value: '²' });
-                i++;
+            // Superscript exponents (e.g. ², ³, ⁴, ⁻¹)
+            if (/[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]/.test(ch)) {
+                const superMap = {
+                    '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+                    '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
+                    '⁺': '+', '⁻': '-'
+                };
+                let superStr = '';
+                while (i < len && /[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]/.test(input[i])) {
+                    superStr += superMap[input[i]] || input[i];
+                    i++;
+                }
+                tokens.push({ type: TOKEN_OP, value: '^' });
+                if (superStr.startsWith('-') || superStr.startsWith('+')) {
+                    tokens.push({ type: TOKEN_LPAREN, value: '(' });
+                    tokens.push({ type: TOKEN_OP, value: superStr[0] });
+                    tokens.push({ type: TOKEN_NUMBER, value: parseFloat(superStr.slice(1)) || 0 });
+                    tokens.push({ type: TOKEN_RPAREN, value: ')' });
+                } else {
+                    tokens.push({ type: TOKEN_NUMBER, value: parseFloat(superStr) || 0 });
+                }
                 continue;
             }
 

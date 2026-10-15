@@ -100,10 +100,14 @@ assert("Fraction 3.5 mixed", f1.mixed, "3 1/2");
 const f2 = MathParser.decimalToFraction(0.125);
 assert("Fraction 0.125 improper", f2.improper, "1/8");
 
-// 10. Natural Language Queries
+// 10. Natural Language Queries & Pretty Unicode Expressions
 assert("15% of 240", MathParser.evaluate("15% of 240").result, 36);
 assert("half of 90", MathParser.evaluate("half of 90").result, 45);
 assert("sqrt of 144", MathParser.evaluate("sqrt of 144").result, 12);
+assert("2³ cube", MathParser.evaluate("2³").result, 8);
+assert("2³ + 5 × √(9)", MathParser.evaluate("2³ + 5 × √(9)").result, 23);
+assert("10⁴ power", MathParser.evaluate("10⁴").result, 10000);
+assert("5⁻¹ reciprocal", MathParser.evaluate("5⁻¹").result, 0.2);
 
 // 11. Step-by-Step Breakdown ("Show Your Work")
 const stepResult = MathParser.evaluate("2 + 3 * 4");
