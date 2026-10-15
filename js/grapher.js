@@ -55,7 +55,12 @@ const Grapher = (function () {
             }
         }
 
+        invalidateCache() {
+            this._cacheValid = false;
+        }
+
         resize() {
+            this.invalidateCache();
             const rect = this.canvas.getBoundingClientRect();
             const width = rect.width || 360;
             const height = rect.height || 360;
@@ -72,6 +77,14 @@ const Grapher = (function () {
         destroy() {
             if (this.resizeObserver) {
                 this.resizeObserver.disconnect();
+            }
+            if (this._onMouseMove) {
+                window.removeEventListener('mousemove', this._onMouseMove);
+                this._onMouseMove = null;
+            }
+            if (this._onMouseUp) {
+                window.removeEventListener('mouseup', this._onMouseUp);
+                this._onMouseUp = null;
             }
         }
 
@@ -174,6 +187,7 @@ const Grapher = (function () {
         // ==========================================
 
         calculateKeyPoints() {
+            this.invalidateCache();
             this.keyPoints = [];
             if (!this.options.showKeyPoints) return;
 
@@ -191,9 +205,10 @@ const Grapher = (function () {
             const dx = (xMax - xMin) / steps;
 
             // 1. Single function features (Roots, Y-intercepts, Extrema)
-            visibleFns.forEach((fn, fnIdx) => {
+            visibleFns.forEach((fn) => {
                 if (fn.compiled.isVertical || fn.compiled.isImplicit) return;
                 const evaluate = fn.compiled.evaluate;
+                const fnIdx = this.functions.indexOf(fn);
                 const fnName = `f${fnIdx + 1}`;
 
                 // Y-Intercept at x = 0
@@ -245,7 +260,8 @@ const Grapher = (function () {
                         if (prevSlope !== null && Number.isFinite(prevSlope) && Number.isFinite(slope)) {
                             if (prevSlope > 0 && slope < 0) {
                                 // Local Maximum
-                                const mxX = cleanNumber((prevX + currX) / 2);
+                                const rawX = this.refineExtremum(evaluate, prevX - dx, currX, false);
+                                const mxX = cleanNumber(rawX);
                                 const mxY = cleanNumber(evaluate({ x: mxX }));
                                 if (Number.isFinite(mxY) && mxY >= this.viewport.yMin && mxY <= this.viewport.yMax) {
                                     this.keyPoints.push({
@@ -258,7 +274,8 @@ const Grapher = (function () {
                                 }
                             } else if (prevSlope < 0 && slope > 0) {
                                 // Local Minimum
-                                const mnX = cleanNumber((prevX + currX) / 2);
+                                const rawX = this.refineExtremum(evaluate, prevX - dx, currX, true);
+                                const mnX = cleanNumber(rawX);
                                 const mnY = cleanNumber(evaluate({ x: mnX }));
                                 if (Number.isFinite(mnY) && mnY >= this.viewport.yMin && mnY <= this.viewport.yMax) {
                                     this.keyPoints.push({
@@ -287,6 +304,8 @@ const Grapher = (function () {
                     const fn1 = visibleFns[i];
                     const fn2 = visibleFns[j];
                     if (fn1.compiled.isVertical || fn2.compiled.isVertical || fn1.compiled.isImplicit || fn2.compiled.isImplicit) continue;
+                    const idx1 = this.functions.indexOf(fn1);
+                    const idx2 = this.functions.indexOf(fn2);
                     const diffEval = (scope) => fn1.compiled.evaluate(scope) - fn2.compiled.evaluate(scope);
 
                     let prevX = xMin;
@@ -309,9 +328,9 @@ const Grapher = (function () {
                                                 x: rx,
                                                 y: ry,
                                                 type: 'intersection',
-                                                fnIndex: i,
-                                                fn2Index: j,
-                                                label: `Intersection f${i + 1} ∩ f${j + 1}: (${rx}, ${ry})`
+                                                fnIndex: idx1,
+                                                fn2Index: idx2,
+                                                label: `Intersection f${idx1 + 1} ∩ f${idx2 + 1}: (${rx}, ${ry})`
                                             });
                                         }
                                     }
@@ -352,6 +371,23 @@ const Grapher = (function () {
             return (a + b) / 2;
         }
 
+        refineExtremum(evaluate, a, b, isMin, maxIter = 24) {
+            let left = a, right = b;
+            for (let iter = 0; iter < maxIter; iter++) {
+                const m1 = left + (right - left) / 3;
+                const m2 = right - (right - left) / 3;
+                const y1 = evaluate({ x: m1 });
+                const y2 = evaluate({ x: m2 });
+                if (!Number.isFinite(y1) || !Number.isFinite(y2)) break;
+                if (isMin ? y1 < y2 : y1 > y2) {
+                    right = m2;
+                } else {
+                    left = m1;
+                }
+            }
+            return (left + right) / 2;
+        }
+
         // ==========================================
         // DOMAIN & ASYMPTOTE ANALYSIS
         // ==========================================
@@ -360,9 +396,10 @@ const Grapher = (function () {
             const notes = [];
             const visibleFns = this.functions.filter(f => f.visible && !f.compiled.error);
 
-            visibleFns.forEach((fn, idx) => {
+            visibleFns.forEach((fn) => {
                 const expr = fn.expr.toLowerCase();
-                const fnName = `f${idx + 1}`;
+                const fnIdx = this.functions.indexOf(fn);
+                const fnName = `f${fnIdx + 1}`;
 
                 if (fn.compiled.slope !== undefined) {
                     notes.push({
@@ -458,46 +495,98 @@ const Grapher = (function () {
 
         render() {
             if (!this.width || !this.height) return;
-            const ctx = this.ctx;
-            ctx.clearRect(0, 0, this.width, this.height);
 
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const colors = {
-                bg: isDark ? '#0d1524' : '#f8fafc',
-                gridMajor: isDark ? '#1e293b' : '#e2e8f0',
-                gridMinor: isDark ? '#141e30' : '#f1f5f9',
-                axes: isDark ? '#475569' : '#94a3b8',
-                axisText: isDark ? '#94a3b8' : '#64748b'
-            };
+            const isDark = ['dark', 'midnight', 'synthwave', 'high-contrast'].includes(
+                typeof document !== 'undefined' && document.documentElement ? document.documentElement.getAttribute('data-theme') : ''
+            );
+            const currentTheme = isDark ? 'dark' : 'light';
 
-            // 1. Background fill
-            ctx.fillStyle = colors.bg;
-            ctx.fillRect(0, 0, this.width, this.height);
-
-            // 2. Grid & Axes
-            if (this.options.showGrid) {
-                this.drawGridAndAxes(colors);
+            // Check if viewport bounds or theme changed
+            const vp = this.viewport;
+            if (!this._cachedViewport ||
+                this._cachedViewport.xMin !== vp.xMin ||
+                this._cachedViewport.xMax !== vp.xMax ||
+                this._cachedViewport.yMin !== vp.yMin ||
+                this._cachedViewport.yMax !== vp.yMax ||
+                this._cachedTheme !== currentTheme) {
+                this._cacheValid = false;
             }
 
-            // 3. Plot Functions, Equations & Inequalities (with Asymptote & Singularity jump suppression)
-            this.functions.forEach((fn) => {
-                if (fn.visible && !fn.compiled.error) {
-                    if (fn.compiled.isImplicit) {
-                        this.drawImplicitRelation(fn.compiled, fn.color);
-                    } else if (fn.compiled.isInequality) {
-                        this.drawInequality(fn.compiled, fn.color);
-                    } else {
-                        this.drawFunctionCurve(fn.compiled.evaluate, fn.color);
+            const ctx = this.ctx;
+            const pixelW = Math.round(this.width * this.dpr);
+            const pixelH = Math.round(this.height * this.dpr);
+
+            if (!this._cacheValid) {
+                if (typeof document !== 'undefined' && document.createElement) {
+                    if (!this.offscreenCanvas) {
+                        this.offscreenCanvas = document.createElement('canvas');
+                    }
+                    if (this.offscreenCanvas.width !== pixelW || this.offscreenCanvas.height !== pixelH) {
+                        this.offscreenCanvas.width = pixelW;
+                        this.offscreenCanvas.height = pixelH;
+                    }
+                    this.offscreenCtx = this.offscreenCanvas.getContext('2d');
+                    if (this.offscreenCtx) {
+                        this.offscreenCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
                     }
                 }
-            });
 
-            // 4. Key Points (Roots, Intercepts, Extrema, Intersections)
-            if (this.options.showKeyPoints) {
-                this.drawKeyPoints();
+                const targetCtx = this.offscreenCtx || ctx;
+                const origCtx = this.ctx;
+                this.ctx = targetCtx;
+
+                targetCtx.clearRect(0, 0, this.width, this.height);
+
+                const colors = {
+                    bg: isDark ? '#0d1524' : '#f8fafc',
+                    gridMajor: isDark ? '#1e293b' : '#e2e8f0',
+                    gridMinor: isDark ? '#141e30' : '#f1f5f9',
+                    axes: isDark ? '#475569' : '#94a3b8',
+                    axisText: isDark ? '#94a3b8' : '#64748b'
+                };
+
+                // 1. Background fill
+                targetCtx.fillStyle = colors.bg;
+                targetCtx.fillRect(0, 0, this.width, this.height);
+
+                // 2. Grid & Axes
+                if (this.options.showGrid) {
+                    this.drawGridAndAxes(colors);
+                }
+
+                // 3. Plot Functions, Equations & Inequalities
+                this.functions.forEach((fn) => {
+                    if (fn.visible && !fn.compiled.error) {
+                        if (fn.compiled.isImplicit) {
+                            this.drawImplicitRelation(fn.compiled, fn.color);
+                        } else if (fn.compiled.isInequality) {
+                            this.drawInequality(fn.compiled, fn.color);
+                        } else {
+                            this.drawFunctionCurve(fn.compiled.evaluate, fn.color);
+                        }
+                    }
+                });
+
+                // 4. Key Points (Roots, Intercepts, Extrema, Intersections)
+                if (this.options.showKeyPoints) {
+                    this.drawKeyPoints();
+                }
+
+                this.ctx = origCtx;
+                if (this.offscreenCtx) {
+                    this._cacheValid = true;
+                    this._cachedViewport = { xMin: vp.xMin, xMax: vp.xMax, yMin: vp.yMin, yMax: vp.yMax };
+                    this._cachedTheme = currentTheme;
+                }
             }
 
-            // 5. Trace Tooltip & Crosshairs
+            // Blit cached curves to main canvas if offscreen cache was used
+            if (this.offscreenCanvas && this.offscreenCtx && this._cacheValid) {
+                ctx.clearRect(0, 0, this.width, this.height);
+                ctx.drawImage(this.offscreenCanvas, 0, 0, this.width, this.height);
+            }
+
+            // 5. Trace Tooltip & Crosshairs (overlay on top)
             if (this.options.showTrace && this.tracePoint) {
                 this.drawTracePoint();
             }
@@ -955,7 +1044,7 @@ const Grapher = (function () {
                 this.dragStart = { x: e.clientX, y: e.clientY };
             });
 
-            window.addEventListener('mousemove', (e) => {
+            this._onMouseMove = (e) => {
                 if (this.isDragging) {
                     const dx = e.clientX - this.dragStart.x;
                     const dy = e.clientY - this.dragStart.y;
@@ -971,15 +1060,17 @@ const Grapher = (function () {
                         this.render();
                     }
                 }
-            });
+            };
+            window.addEventListener('mousemove', this._onMouseMove);
 
-            window.addEventListener('mouseup', () => {
+            this._onMouseUp = () => {
                 if (this.isDragging) {
                     this.isDragging = false;
                     this.calculateKeyPoints();
                     this.render();
                 }
-            });
+            };
+            window.addEventListener('mouseup', this._onMouseUp);
 
             canvas.addEventListener('mouseleave', () => {
                 if (!this.isDragging) {
@@ -1038,6 +1129,7 @@ const Grapher = (function () {
         }
 
         pan(dxPixels, dyPixels) {
+            this.invalidateCache();
             const worldDx = (dxPixels / this.width) * (this.viewport.xMax - this.viewport.xMin);
             const worldDy = (dyPixels / this.height) * (this.viewport.yMax - this.viewport.yMin);
 
@@ -1271,3 +1363,7 @@ const Grapher = (function () {
         Plotter: GraphPlotter
     };
 })();
+
+if (typeof module === 'object' && module.exports) {
+    module.exports = Grapher;
+}

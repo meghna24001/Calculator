@@ -1,8 +1,0 @@
-LINE 2494: COMBINING MACRON U+0304: x̄ = (Σ xᵢ) / n
-LINE 2496: COMBINING MACRON U+0304: x̄_w = (Σ wᵢ xᵢ) / (Σ wᵢ)
-LINE 2506: COMBINING MACRON U+0304: s² = Σ (xᵢ − x̄)² / (n − 1)
-LINE 2508: COMBINING MACRON U+0304: s = √(Σ (xᵢ − x̄)² / (n − 1))
-LINE 2510: COMBINING MACRON U+0304: CV = (s / x̄) × 100%
-LINE 2528: COMBINING MACRON U+0304: r = Σ[(x−x̄)(y−ȳ)] / √[Σ(x−x̄)² · Σ(y−ȳ)²]
-LINE 2529: COMBINING MACRON U+0304: b = Σ[(x−x̄)(y−ȳ)] / Σ(x−x̄)²
-LINE 2530: COMBINING MACRON U+0304: a = ȳ − b·x̄

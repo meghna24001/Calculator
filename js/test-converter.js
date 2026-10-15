@@ -18,9 +18,9 @@ const tests = [
     ['length',      'ft',   'cm',     1,       30.48,      0],
     ['length',      'in',   'cm',     1,       2.54,       0],
     ['length',      'nmi',  'm',      1,       1852,       0],
-    ['mass',        'kg',   'lb',     1,       2.20462,    0.001],
-    ['mass',        'oz',   'g',      1,       28.3495,    0.001],
-    ['mass',        'st',   'kg',     1,       6.35029,    0.001],
+    ['mass',        'kg',   'lb',     1,       2.2046226218, 1e-6],
+    ['mass',        'oz',   'g',      1,       28.349523125, 1e-9],
+    ['mass',        'st',   'kg',     1,       6.35029318,   1e-9],
     ['temperature', 'C',    'F',      100,     212,        0],
     ['temperature', 'F',    'C',      32,      0,          0],
     ['temperature', 'C',    'K',      0,       273.15,     0],
@@ -28,21 +28,21 @@ const tests = [
     ['temperature', 'C',    'F',      -40,     -40,        0],      // -40 is same in C and F
     ['speed',       'kmh',  'mph',    100,     62.1371,    0.001],
     ['speed',       'ms',   'kmh',    1,       3.6,        0],
-    ['speed',       'kn',   'ms',     1,       0.514444,   0.001],
+    ['speed',       'kn',   'ms',     1,       1852 / 3600,1e-9],
     ['area',        'm2',   'ft2',    1,       10.7639,    0.001],
     ['area',        'ha',   'm2',     1,       10000,      0],
-    ['area',        'acre', 'm2',     1,       4046.86,    0.001],
+    ['area',        'acre', 'm2',     1,       4046.8564224, 1e-9],
     ['volume',      'L',    'mL',     1,       1000,       0],
-    ['volume',      'L',    'galUS',  1,       0.264172,   0.001],
-    ['volume',      'galUS','L',      1,       3.78541,    0.001],
+    ['volume',      'L',    'galUS',  1,       0.264172052358, 1e-6],
+    ['volume',      'galUS','L',      1,       3.785411784, 1e-9],
     ['time',        'h',    'min',    2,       120,        0],
     ['time',        'day',  'h',      1,       24,         0],
     ['time',        'year', 'day',    1,       365.25,     0.01],
     ['energy',      'kWh',  'J',      1,       3600000,    0],
     ['energy',      'kcal', 'J',      1,       4184,       0],
-    ['energy',      'BTU',  'J',      1,       1055.06,    0.001],
+    ['energy',      'BTU',  'J',      1,       1055.05585, 1e-9],
     ['pressure',    'atm',  'Pa',     1,       101325,     0],
-    ['pressure',    'psi',  'Pa',     1,       6894.76,    0.001],
+    ['pressure',    'psi',  'Pa',     1,       6894.757293168, 1e-9],
     ['pressure',    'bar',  'Pa',     1,       100000,     0],
     ['data',        'GB',   'MB',     1,       1000,       0],
     ['data',        'GiB',  'MiB',   1,       1024,       0],
@@ -51,7 +51,7 @@ const tests = [
     ['angle',       'rad',  'deg',    Math.PI, 180,        0.0001],
     ['angle',       'rev',  'deg',    1,       360,        0],
     ['power',       'kW',   'W',      1,       1000,       0],
-    ['power',       'hp',   'W',      1,       745.7,      0.001],
+    ['power',       'hp',   'W',      1,       745.69987158, 1e-9],
     ['fuel',        'L100km','kmL',   10,      10,         0],   // 10L/100km = 10km/L
 ];
 
@@ -68,6 +68,13 @@ const numeralTests = [
     ['dec', 'dec', '123', '123'],
 ];
 
+const formatTests = [
+    // [category, fromUnit, toUnit, input, expectedFormatted]
+    ['length', 'mm', 'km', 1.23456, '1.23456e-6'],
+    ['mass',   'mg', 'kg', 2.5,     '2.5e-6'],
+    ['volume', 'mL', 'm3', 50,      '5e-5'],
+];
+
 let pass = 0, fail = 0;
 tests.forEach(([cat, from, to, input, expected, tol]) => {
     const res = C.convert(input, cat, from, to);
@@ -79,7 +86,7 @@ tests.forEach(([cat, from, to, input, expected, tol]) => {
     const got = res.result;
     const absExpected = Math.abs(expected);
     const diffPct = absExpected < 1e-12 ? Math.abs(got - expected) : Math.abs(got - expected) / absExpected;
-    const ok = diffPct <= (tol + 0.0001);
+    const ok = diffPct <= (tol + 1e-9);
     if (ok) {
         pass++;
     } else {
@@ -99,6 +106,21 @@ numeralTests.forEach(([from, to, input, expectedFormatted]) => {
         pass++;
     } else {
         console.log(`FAIL [numeral] ${from}->${to} (${input}): got "${res.formatted}", expected "${expectedFormatted}"`);
+        fail++;
+    }
+});
+
+formatTests.forEach(([cat, from, to, input, expectedFormatted]) => {
+    const res = C.convert(input, cat, from, to);
+    if (res.error) {
+        console.log(`FAIL [format] ${from}->${to} (${input}): error="${res.error}"`);
+        fail++;
+        return;
+    }
+    if (res.formatted === expectedFormatted) {
+        pass++;
+    } else {
+        console.log(`FAIL [format] ${from}->${to} (${input}): got "${res.formatted}", expected "${expectedFormatted}"`);
         fail++;
     }
 });

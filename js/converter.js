@@ -34,8 +34,8 @@ const UnitConverter = (function () {
                 ft:   { label: 'Foot',          symbol: 'ft',  toBase: v => v * 0.3048,        fromBase: v => v / 0.3048 },
                 in:   { label: 'Inch',          symbol: 'in',  toBase: v => v * 0.0254,        fromBase: v => v / 0.0254 },
                 nmi:  { label: 'Nautical Mile', symbol: 'nmi', toBase: v => v * 1852,          fromBase: v => v / 1852 },
-                ly:   { label: 'Light Year',    symbol: 'ly',  toBase: v => v * 9.461e15,      fromBase: v => v / 9.461e15 },
-                au:   { label: 'Astron. Unit',  symbol: 'AU',  toBase: v => v * 1.496e11,      fromBase: v => v / 1.496e11 },
+                ly:   { label: 'Light Year',    symbol: 'ly',  toBase: v => v * 9.4607304725808e15,      fromBase: v => v / 9.4607304725808e15 },
+                au:   { label: 'Astron. Unit',  symbol: 'AU',  toBase: v => v * 1.495978707e11,      fromBase: v => v / 1.495978707e11 },
             }
         },
 
@@ -49,11 +49,11 @@ const UnitConverter = (function () {
                 g:    { label: 'Gram',          symbol: 'g',   toBase: v => v / 1000,          fromBase: v => v * 1000 },
                 mg:   { label: 'Milligram',     symbol: 'mg',  toBase: v => v / 1e6,           fromBase: v => v * 1e6 },
                 ug:   { label: 'Microgram',     symbol: 'μg',  toBase: v => v / 1e9,           fromBase: v => v * 1e9 },
-                lb:   { label: 'Pound',         symbol: 'lb',  toBase: v => v * 0.453592,      fromBase: v => v / 0.453592 },
-                oz:   { label: 'Ounce',         symbol: 'oz',  toBase: v => v * 0.0283495,     fromBase: v => v / 0.0283495 },
-                st:   { label: 'Stone',         symbol: 'st',  toBase: v => v * 6.35029,       fromBase: v => v / 6.35029 },
-                ton:  { label: 'Short Ton (US)',symbol: 'ton', toBase: v => v * 907.185,       fromBase: v => v / 907.185 },
-                lton: { label: 'Long Ton (UK)', symbol: 'LT',  toBase: v => v * 1016.05,       fromBase: v => v / 1016.05 },
+                lb:   { label: 'Pound',         symbol: 'lb',  toBase: v => v * 0.45359237,      fromBase: v => v / 0.45359237 },
+                oz:   { label: 'Ounce',         symbol: 'oz',  toBase: v => v * 0.028349523125,     fromBase: v => v / 0.028349523125 },
+                st:   { label: 'Stone',         symbol: 'st',  toBase: v => v * 6.35029318,       fromBase: v => v / 6.35029318 },
+                ton:  { label: 'Short Ton (US)',symbol: 'ton', toBase: v => v * 907.18474,       fromBase: v => v / 907.18474 },
+                lton: { label: 'Long Ton (UK)', symbol: 'LT',  toBase: v => v * 1016.0469088,       fromBase: v => v / 1016.0469088 },
             }
         },
 
@@ -77,10 +77,10 @@ const UnitConverter = (function () {
                 ms:   { label: 'Metre/second',  symbol: 'm/s',   toBase: v => v,              fromBase: v => v },
                 kmh:  { label: 'Kilometre/hour', symbol: 'km/h', toBase: v => v / 3.6,        fromBase: v => v * 3.6 },
                 mph:  { label: 'Mile/hour',      symbol: 'mph',  toBase: v => v * 0.44704,    fromBase: v => v / 0.44704 },
-                kn:   { label: 'Knot',           symbol: 'kn',   toBase: v => v * 0.514444,   fromBase: v => v / 0.514444 },
+                kn:   { label: 'Knot',           symbol: 'kn',   toBase: v => v * (1852 / 3600),   fromBase: v => v / (1852 / 3600) },
                 fts:  { label: 'Foot/second',    symbol: 'ft/s', toBase: v => v * 0.3048,     fromBase: v => v / 0.3048 },
                 mach: { label: 'Mach (sea lvl)', symbol: 'Ma',   toBase: v => v * 340.29,     fromBase: v => v / 340.29 },
-                c:    { label: 'Speed of Light', symbol: 'c',    toBase: v => v * 2.998e8,    fromBase: v => v / 2.998e8 },
+                c:    { label: 'Speed of Light', symbol: 'c',    toBase: v => v * 299792458,  fromBase: v => v / 299792458 },
             }
         },
 
@@ -94,8 +94,8 @@ const UnitConverter = (function () {
                 cm2:  { label: 'Square Centimetre',symbol: 'cm²',  toBase: v => v / 1e4,      fromBase: v => v * 1e4 },
                 mm2:  { label: 'Square Millimetre',symbol: 'mm²',  toBase: v => v / 1e6,      fromBase: v => v * 1e6 },
                 ha:   { label: 'Hectare',           symbol: 'ha',   toBase: v => v * 1e4,      fromBase: v => v / 1e4 },
-                acre: { label: 'Acre',              symbol: 'ac',   toBase: v => v * 4046.86,  fromBase: v => v / 4046.86 },
-                mi2:  { label: 'Square Mile',       symbol: 'mi²',  toBase: v => v * 2.59e6,   fromBase: v => v / 2.59e6 },
+                acre: { label: 'Acre',              symbol: 'ac',   toBase: v => v * 4046.8564224,  fromBase: v => v / 4046.8564224 },
+                mi2:  { label: 'Square Mile',       symbol: 'mi²',  toBase: v => v * 2589988.110336,fromBase: v => v / 2589988.110336 },
                 ft2:  { label: 'Square Foot',       symbol: 'ft²',  toBase: v => v * 0.092903, fromBase: v => v / 0.092903 },
                 in2:  { label: 'Square Inch',       symbol: 'in²',  toBase: v => v * 6.4516e-4,fromBase: v => v / 6.4516e-4 },
                 yd2:  { label: 'Square Yard',       symbol: 'yd²',  toBase: v => v * 0.836127, fromBase: v => v / 0.836127 },
@@ -111,15 +111,15 @@ const UnitConverter = (function () {
                 L:    { label: 'Litre',          symbol: 'L',   toBase: v => v / 1000,       fromBase: v => v * 1000 },
                 mL:   { label: 'Millilitre',     symbol: 'mL',  toBase: v => v / 1e6,        fromBase: v => v * 1e6 },
                 cm3:  { label: 'Cubic Centimetre',symbol: 'cm³',toBase: v => v / 1e6,        fromBase: v => v * 1e6 },
-                ft3:  { label: 'Cubic Foot',     symbol: 'ft³', toBase: v => v * 0.0283168,  fromBase: v => v / 0.0283168 },
-                in3:  { label: 'Cubic Inch',     symbol: 'in³', toBase: v => v * 1.6387e-5,  fromBase: v => v / 1.6387e-5 },
-                galUS:{ label: 'US Gallon',      symbol: 'gal', toBase: v => v * 0.00378541, fromBase: v => v / 0.00378541 },
+                ft3:  { label: 'Cubic Foot',     symbol: 'ft³', toBase: v => v * 0.028316846592,  fromBase: v => v / 0.028316846592 },
+                in3:  { label: 'Cubic Inch',     symbol: 'in³', toBase: v => v * 1.6387064e-5,  fromBase: v => v / 1.6387064e-5 },
+                galUS:{ label: 'US Gallon',      symbol: 'gal', toBase: v => v * 0.003785411784, fromBase: v => v / 0.003785411784 },
                 galUK:{ label: 'UK Gallon',      symbol: 'UKgal',toBase: v => v * 0.00454609,fromBase: v => v / 0.00454609 },
-                qt:   { label: 'US Quart',       symbol: 'qt',  toBase: v => v * 9.4635e-4,  fromBase: v => v / 9.4635e-4 },
-                pt:   { label: 'US Pint',        symbol: 'pt',  toBase: v => v * 4.7318e-4,  fromBase: v => v / 4.7318e-4 },
-                floz: { label: 'US Fl. Ounce',   symbol: 'fl oz',toBase: v => v * 2.9574e-5, fromBase: v => v / 2.9574e-5 },
-                tsp:  { label: 'Teaspoon (US)',  symbol: 'tsp', toBase: v => v * 4.9289e-6,  fromBase: v => v / 4.9289e-6 },
-                tbsp: { label: 'Tablespoon (US)',symbol: 'tbsp',toBase: v => v * 1.4787e-5,  fromBase: v => v / 1.4787e-5 },
+                qt:   { label: 'US Quart',       symbol: 'qt',  toBase: v => v * 9.46352946e-4,  fromBase: v => v / 9.46352946e-4 },
+                pt:   { label: 'US Pint',        symbol: 'pt',  toBase: v => v * 4.73176473e-4,  fromBase: v => v / 4.73176473e-4 },
+                floz: { label: 'US Fl. Ounce',   symbol: 'fl oz',toBase: v => v * 2.95735295625e-5, fromBase: v => v / 2.95735295625e-5 },
+                tsp:  { label: 'Teaspoon (US)',  symbol: 'tsp', toBase: v => v * 4.92892159375e-6,  fromBase: v => v / 4.92892159375e-6 },
+                tbsp: { label: 'Tablespoon (US)',symbol: 'tbsp',toBase: v => v * 1.478676478125e-5,  fromBase: v => v / 1.478676478125e-5 },
             }
         },
 
@@ -155,8 +155,8 @@ const UnitConverter = (function () {
                 kcal: { label: 'Kilocalorie',   symbol: 'kcal', toBase: v => v * 4184,       fromBase: v => v / 4184 },
                 Wh:   { label: 'Watt-hour',     symbol: 'Wh',   toBase: v => v * 3600,       fromBase: v => v / 3600 },
                 kWh:  { label: 'Kilowatt-hour', symbol: 'kWh',  toBase: v => v * 3.6e6,      fromBase: v => v / 3.6e6 },
-                BTU:  { label: 'BTU',           symbol: 'BTU',  toBase: v => v * 1055.06,    fromBase: v => v / 1055.06 },
-                eV:   { label: 'Electronvolt',  symbol: 'eV',   toBase: v => v * 1.602e-19,  fromBase: v => v / 1.602e-19 },
+                BTU:  { label: 'BTU',           symbol: 'BTU',  toBase: v => v * 1055.05585,    fromBase: v => v / 1055.05585 },
+                eV:   { label: 'Electronvolt',  symbol: 'eV',   toBase: v => v * 1.602176634e-19,  fromBase: v => v / 1.602176634e-19 },
                 ftlb: { label: 'Foot-pound',    symbol: 'ft·lb',toBase: v => v * 1.35582,    fromBase: v => v / 1.35582 },
             }
         },
@@ -172,9 +172,9 @@ const UnitConverter = (function () {
                 bar:  { label: 'Bar',         symbol: 'bar',  toBase: v => v * 1e5,        fromBase: v => v / 1e5 },
                 mbar: { label: 'Millibar',    symbol: 'mbar', toBase: v => v * 100,        fromBase: v => v / 100 },
                 atm:  { label: 'Atmosphere',  symbol: 'atm',  toBase: v => v * 101325,     fromBase: v => v / 101325 },
-                psi:  { label: 'PSI',         symbol: 'psi',  toBase: v => v * 6894.76,    fromBase: v => v / 6894.76 },
-                torr: { label: 'Torr / mmHg', symbol: 'Torr', toBase: v => v * 133.322,    fromBase: v => v / 133.322 },
-                inHg: { label: 'Inch of Hg',  symbol: 'inHg', toBase: v => v * 3386.39,    fromBase: v => v / 3386.39 },
+                psi:  { label: 'PSI',         symbol: 'psi',  toBase: v => v * 6894.757293168,    fromBase: v => v / 6894.757293168 },
+                torr: { label: 'Torr / mmHg', symbol: 'Torr', toBase: v => v * 133.322368421,    fromBase: v => v / 133.322368421 },
+                inHg: { label: 'Inch of Hg',  symbol: 'inHg', toBase: v => v * 3386.389,    fromBase: v => v / 3386.389 },
             }
         },
 
@@ -220,7 +220,7 @@ const UnitConverter = (function () {
                 kW:   { label: 'Kilowatt',      symbol: 'kW',  toBase: v => v * 1000,     fromBase: v => v / 1000 },
                 MW:   { label: 'Megawatt',      symbol: 'MW',  toBase: v => v * 1e6,      fromBase: v => v / 1e6 },
                 GW:   { label: 'Gigawatt',      symbol: 'GW',  toBase: v => v * 1e9,      fromBase: v => v / 1e9 },
-                hp:   { label: 'Horsepower',    symbol: 'hp',  toBase: v => v * 745.7,    fromBase: v => v / 745.7 },
+                hp:   { label: 'Horsepower',    symbol: 'hp',  toBase: v => v * 745.69987158,    fromBase: v => v / 745.69987158 },
                 BTUh: { label: 'BTU/hour',      symbol: 'BTU/h',toBase: v => v * 0.293071,fromBase: v => v / 0.293071 },
                 ftlbs:{ label: 'ft·lb/s',       symbol: 'ft·lb/s',toBase: v => v * 1.35582,fromBase: v => v / 1.35582 },
             }
@@ -383,7 +383,7 @@ const UnitConverter = (function () {
         if (n === 0) return '0';
         const abs = Math.abs(n);
 
-        if (abs >= 1e-6 && abs < 1e13) {
+        if (abs >= 1e-4 && abs < 1e13) {
             // Normal range — use up to 10 significant digits, trim trailing zeros
             const fixed = parseFloat(n.toPrecision(10));
             // Cap at 8 decimal places to keep it readable

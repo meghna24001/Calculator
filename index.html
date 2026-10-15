@@ -20,7 +20,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
@@ -171,7 +171,7 @@
         <div class="sidebar-about">
             <p style="font-weight: 600;">Calyx | Modern Calculator Hub</p>
             <p style="opacity:0.65; font-size:0.78rem;">Framework-free &middot; No backend &middot; Offline ready</p>
-            <span style="display:inline-block; margin-top:6px; padding:2px 6px; background:var(--accent-subtle); color:var(--accent-primary); border-radius:4px; font-size:0.65rem; font-weight:600;">v1.2.2</span>
+            <span style="display:inline-block; margin-top:6px; padding:2px 6px; background:var(--accent-subtle); color:var(--accent-primary); border-radius:4px; font-size:0.65rem; font-weight:600;">v1.2.3</span>
         </div>
 
         <div class="sidebar-footer">
@@ -182,7 +182,7 @@
 
     <!-- ===================== FORMULA SHEET DRAWER ===================== -->
     <div id="formula-sheet-overlay" class="formula-sheet-overlay" aria-hidden="true"></div>
-    <aside id="formula-sheet-drawer" class="formula-sheet-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="formula-sheet-title">
+    <aside id="formula-sheet-drawer" class="formula-sheet-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="formula-sheet-title" inert>
         <div class="formula-sheet-header">
             <div class="formula-sheet-title-wrap">
                 <span class="formula-sheet-icon">📐</span>
@@ -333,34 +333,18 @@
                 <span class="kbd-badge">( )</span><span>Parentheses / grouping</span>
                 <span class="kbd-badge">^</span><span>Exponentiation (power)</span>
                 <span class="kbd-badge">!</span><span>Factorial</span>
-                <span class="kbd-badge">s / c / t</span><span>sin, cos, tan</span>
+                <span class="kbd-badge">s / t</span><span>sin, tan</span>
                 <span class="kbd-badge">l / n</span><span>log (base 10), ln (natural)</span>
                 <span class="kbd-badge">p / e</span><span>&#x3C0;, Euler's number e</span>
                 <span class="kbd-badge">m</span><span>Memory add (M+)</span>
                 <span class="kbd-badge">r</span><span>Memory recall (MR)</span>
             </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 12px; margin-bottom: 0;">
+                <em>Note: Scientific-only shortcuts (s, t, l, n, p, e) only work in Scientific mode.</em>
+            </p>
         </div>
     </div>
 
-    <!-- Accent Color Palette Modal -->
-    <div id="palette-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="palette-modal-title">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="palette-modal-title" class="modal-title">🎨 Accent Theme</h3>
-                <button type="button" class="modal-close-btn" data-close="palette-modal" aria-label="Close modal">&#x00D7;</button>
-            </div>
-            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px;">
-                Choose an accent color for operators, highlights, and icons:
-            </p>
-            <div class="palette-grid">
-                <button type="button" class="palette-swatch active" data-accent-val="blue"    style="background: #2563eb;" title="Electric Blue"    aria-label="Electric Blue"></button>
-                <button type="button" class="palette-swatch"        data-accent-val="emerald" style="background: #059669;" title="Emerald Green"    aria-label="Emerald Green"></button>
-                <button type="button" class="palette-swatch"        data-accent-val="purple"  style="background: #7c3aed;" title="Amethyst Purple"  aria-label="Amethyst Purple"></button>
-                <button type="button" class="palette-swatch"        data-accent-val="amber"   style="background: #d97706;" title="Solar Amber"      aria-label="Solar Amber"></button>
-                <button type="button" class="palette-swatch"        data-accent-val="rose"    style="background: #e11d48;" title="Crimson Rose"     aria-label="Crimson Rose"></button>
-            </div>
-        </div>
-    </div>
 
     <!-- Install Guide Modal (Universal for mobile & desktop) -->
     <div id="ios-guide-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ios-modal-title">

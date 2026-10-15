@@ -3,7 +3,7 @@
  * Provides robust offline functionality, cache invalidation, and fast loads.
  */
 
-const CACHE_NAME = 'calc-pwa-v1.2.2';
+const CACHE_NAME = 'calc-pwa-v1.2.3';
 
 const PRECACHE_ASSETS = [
     './',
@@ -74,6 +74,7 @@ self.addEventListener('fetch', (event) => {
                 if (event.request.mode === 'navigate') {
                     return caches.match('./index.html');
                 }
+                return Response.error();
             });
 
             return cachedResponse || fetchPromise;

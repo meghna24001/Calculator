@@ -75,8 +75,13 @@ assert("Infix 3√8", MathParser.evaluate("3√8").result, 2);
 assert("5!", MathParser.evaluate("5!").result, 120);
 assert("(2+3)!", MathParser.evaluate("(2+3)!").result, 120);
 assert("Factorial overflow > 170", MathParser.evaluate("171!").error !== null, true);
+assert("2cos(60) DEG", MathParser.evaluate("2cos(60)", { angleMode: 'DEG' }).result, 1);
+assert("2pi", MathParser.evaluate("2pi").result, 2 * Math.PI);
+assert("(1+1)cos(0)", MathParser.evaluate("(1+1)cos(0)", { angleMode: 'DEG' }).result, 2);
+assert("3cos(0)", MathParser.evaluate("3cos(0)", { angleMode: 'DEG' }).result, 3);
 assert("5P2", MathParser.evaluate("5P2").result, 20);
 assert("5C2", MathParser.evaluate("5C2").result, 10);
+assert("5C(2)", MathParser.evaluate("5C(2)").result, 10);
 
 // 8. Statistics & Multi-Arg Functions
 assert("mean(2, 4, 6, 8)", MathParser.evaluate("mean(2, 4, 6, 8)").result, 5);
@@ -108,6 +113,12 @@ assert("2³ cube", MathParser.evaluate("2³").result, 8);
 assert("2³ + 5 × √(9)", MathParser.evaluate("2³ + 5 × √(9)").result, 23);
 assert("10⁴ power", MathParser.evaluate("10⁴").result, 10000);
 assert("5⁻¹ reciprocal", MathParser.evaluate("5⁻¹").result, 0.2);
+
+// xsin(x) identifier split test
+const compiledXSin = MathParser.compile("xsin(x)", { angleMode: 'RAD' });
+assert("xsin(x) compile error is null", compiledXSin.error, null);
+const xSinVal = compiledXSin.evaluate({ x: Math.PI / 2 }, 'RAD');
+assert("xsin(x) at x=pi/2 in RAD", Math.abs(xSinVal - Math.PI / 2) < 1e-10, true);
 
 // 11. Step-by-Step Breakdown ("Show Your Work")
 const stepResult = MathParser.evaluate("2 + 3 * 4");

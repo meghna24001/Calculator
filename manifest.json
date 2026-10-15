@@ -43,6 +43,20 @@
       "description": "Open scientific calculator with trigonometry and statistics",
       "url": "./index.html?mode=scientific",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Unit Converter",
+      "short_name": "Converter",
+      "description": "Open offline unit converter",
+      "url": "./index.html?mode=converter",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Graph Plotter",
+      "short_name": "Grapher",
+      "description": "Open 2D graphing calculator",
+      "url": "./index.html?mode=graph",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

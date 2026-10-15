@@ -78,6 +78,38 @@ assert('Tan after asymptote is large negative', valAfter < -1000);
 const signFlip = (valBefore > 0 && valAfter < 0);
 assert('Sign flip detected across asymptote', signFlip);
 
+// 2. Real code path test: Grapher.Plotter with fake canvas/context
+const fakeCtx = new Proxy({}, { get: (t, p) => typeof t[p] !== 'undefined' ? t[p] : () => {} });
+const fakeCanvas = {
+    getContext: () => fakeCtx,
+    getBoundingClientRect: () => ({ width: 400, height: 400, left: 0, top: 0, right: 400, bottom: 400 }),
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    width: 400,
+    height: 400
+};
+global.window = global.window || { devicePixelRatio: 1, addEventListener: () => {}, removeEventListener: () => {} };
+global.document = global.document || {
+    documentElement: { getAttribute: () => 'light' },
+    createElement: () => ({ getContext: () => fakeCtx, width: 400, height: 400 })
+};
+global.ResizeObserver = global.ResizeObserver || class { observe() {} disconnect() {} };
+global.MathParser = MathParser;
+
+const Grapher = require('./grapher.js');
+const plotter = new Grapher.Plotter(fakeCanvas, { showKeyPoints: true });
+plotter.setFunctions([{ expr: 'x^2 - 4', visible: true }]);
+
+const hasRoot2 = plotter.keyPoints.some(p => p.type === 'root' && Math.abs(p.x - 2) < 1e-4);
+const hasRootMinus2 = plotter.keyPoints.some(p => p.type === 'root' && Math.abs(p.x - (-2)) < 1e-4);
+const hasYIntercept = plotter.keyPoints.some(p => p.type === 'intercept' && Math.abs(p.x) < 1e-4 && Math.abs(p.y - (-4)) < 1e-4);
+const hasMin = plotter.keyPoints.some(p => p.type === 'min' && Math.abs(p.x) < 1e-4 && Math.abs(p.y - (-4)) < 1e-4);
+
+assert('Grapher.Plotter detects root x=2', hasRoot2);
+assert('Grapher.Plotter detects root x=-2', hasRootMinus2);
+assert('Grapher.Plotter detects y-intercept (0, -4)', hasYIntercept);
+assert('Grapher.Plotter detects minimum (0, -4)', hasMin);
+
 console.log(`\nResults: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
 

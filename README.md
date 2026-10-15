@@ -35,15 +35,16 @@ The test scripts use Node.js and can be run from the project folder:
 node js/test-parser.js
 node js/test-converter.js
 node js/test-grapher.js
+node js/test-critical-points.js
 ```
 
-There is also a browser end-to-end test:
+There is also a browser end-to-end test (requires Node.js 22+ with built-in WebSocket support):
 
 ```sh
 node js/browser-e2e.js
 ```
 
-The end-to-end test expects a compatible Chrome browser with its DevTools Protocol endpoint available.
+The end-to-end test expects a compatible Chrome browser with its DevTools Protocol endpoint available. You can override the Chrome executable location by setting the `CHROME_PATH` environment variable.
 
 ## Project structure
 

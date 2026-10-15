@@ -407,7 +407,7 @@
             }
 
             // Infix combinatorics: P or C or nPr or nCr (e.g. 5P2, 5C2, 5nPr2, 5nCr2)
-            if ((ch === 'P' || ch === 'p' || ch === 'C' || ch === 'c') && i + 1 < len) {
+            if ((ch === 'P' || ch === 'p' || ch === 'C' || ch === 'c') && i + 1 < len && !/[a-zA-Z]/.test(input[i + 1])) {
                 const prev = tokens.length > 0 ? tokens[tokens.length - 1] : null;
                 if (prev && (prev.type === TOKEN_NUMBER || prev.type === TOKEN_RPAREN || prev.type === TOKEN_POSTFIX)) {
                     const isP = (ch === 'P' || ch === 'p');
@@ -453,6 +453,16 @@
                 if (word in KNOWN_CONSTANTS) {
                     tokens.push({ type: TOKEN_NUMBER, value: KNOWN_CONSTANTS[word], raw: word });
                     continue;
+                }
+
+                // If identifier is not a known function or constant and starts with x or y followed by a known function, split them
+                if (!KNOWN_FUNCS.has(lowerWord) && (lowerWord.startsWith('x') || lowerWord.startsWith('y'))) {
+                    const remainder = lowerWord.slice(1);
+                    if (KNOWN_FUNCS.has(remainder)) {
+                        tokens.push({ type: TOKEN_IDENT, value: lowerWord[0] });
+                        tokens.push({ type: TOKEN_IDENT, value: remainder });
+                        continue;
+                    }
                 }
 
                 tokens.push({ type: TOKEN_IDENT, value: lowerWord });

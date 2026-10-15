@@ -35,7 +35,6 @@
 
     // Header Controls
     const btnThemeToggle = document.getElementById('btn-theme-toggle');
-    const btnPaletteModal = document.getElementById('btn-palette-modal');
     const btnKeyboardHelp = document.getElementById('btn-keyboard-help');
     const btnHistoryToggle = document.getElementById('btn-history-toggle');
 
@@ -54,7 +53,6 @@
 
     // Modals
     const keyboardHelpModal = document.getElementById('keyboard-help-modal');
-    const paletteModal = document.getElementById('palette-modal');
     const iosGuideModal = document.getElementById('ios-guide-modal');
 
     // ==========================================
@@ -63,7 +61,6 @@
     const STORAGE_KEY_HISTORY = 'modern_calc_history_v1';
     const STORAGE_KEY_THEME = 'modern_calc_theme';
     const STORAGE_KEY_ACCENT = 'modern_calc_accent';
-    const STORAGE_KEY_MODE = 'modern_calc_mode';
 
     let currentMode = 'basic'; // 'basic' | 'scientific' | 'converter'
     let angleMode = 'DEG';     // 'DEG' | 'RAD'
@@ -88,6 +85,15 @@
 
     const DISPLAY_MIN_FONT_PX = 16;
     const EXPR_MIN_FONT_PX = 10;
+
+    // Safe localStorage wrappers — guard against SecurityError in private browsing
+    // and QuotaExceededError on write.
+    function safeGet(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    function safeSet(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) { /* ignore quota/security errors */ }
+    }
 
     function shrinkToFit(el, minPx) {
         el.style.fontSize = '';                       // back to the CSS size
@@ -281,12 +287,12 @@
     // ==========================================
 
     function initTheme() {
-        const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
+        const savedTheme = safeGet(STORAGE_KEY_THEME);
         const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
         applyTheme(initialTheme);
 
-        const savedAccent = localStorage.getItem(STORAGE_KEY_ACCENT) || 'blue';
+        const savedAccent = safeGet(STORAGE_KEY_ACCENT) || 'blue';
         applyAccent(savedAccent);
     }
 
@@ -302,7 +308,7 @@
 
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem(STORAGE_KEY_THEME, theme);
+        safeSet(STORAGE_KEY_THEME, theme);
 
         // Update legacy header theme toggle if it still exists
         if (btnThemeToggle) {
@@ -321,6 +327,11 @@
         if (metaThemeColor) {
             metaThemeColor.setAttribute('content', THEME_META_COLORS[theme] || '#f1f5f9');
         }
+
+        // Re-render graph if active so colors update immediately
+        if (typeof graphPlotterInstance !== 'undefined' && graphPlotterInstance && typeof graphPlotterInstance.render === 'function') {
+            graphPlotterInstance.render();
+        }
     }
 
     function toggleTheme() {
@@ -332,12 +343,7 @@
 
     function applyAccent(accent) {
         document.documentElement.setAttribute('data-accent', accent);
-        localStorage.setItem(STORAGE_KEY_ACCENT, accent);
-
-        // Update active palette swatch in modal
-        document.querySelectorAll('.palette-swatch').forEach(swatch => {
-            swatch.classList.toggle('active', swatch.dataset.accentVal === accent);
-        });
+        safeSet(STORAGE_KEY_ACCENT, accent);
 
         // Update active palette swatch in sidebar
         document.querySelectorAll('.sidebar-swatch').forEach(swatch => {
@@ -349,11 +355,8 @@
     // MODE SWITCHING (BASIC <-> SCIENTIFIC <-> CONVERTER)
     // ==========================================
 
-    function setMode(mode, savePref = true) {
+    function setMode(mode) {
         currentMode = mode;
-        if (savePref) {
-            localStorage.setItem(STORAGE_KEY_MODE, mode);
-        }
 
         const isConverter = mode === 'converter';
         const isGraph = mode === 'graph';
@@ -711,6 +714,12 @@
 
     function appendInput(val) {
         resetIfError();
+        if (resultDisplayed && fractionMode !== 'decimal') {
+            setDisplay(String(lastResult));
+            fractionMode = 'decimal';
+            badgeFraction.textContent = 'DEC';
+            badgeFraction.style.display = 'none';
+        }
         let cur = getDisplay();
 
         if (resultDisplayed) {
@@ -860,7 +869,7 @@
     }
 
     function toggleFractionMode() {
-        if (!lastFraction || lastResult === null || typeof lastResult !== 'number') {
+        if (!resultDisplayed || !lastFraction || lastResult === null || typeof lastResult !== 'number') {
             return;
         }
 
@@ -925,6 +934,7 @@
         if (hasError) return;
         const shown = getDisplay().trim();
         if (!shown) return;
+        if (resultDisplayed && fractionMode !== 'decimal') return;
         if (resultDisplayed && PLAIN_NUMBER.test(shown)) return; // already a result
         const rawExpr = getDisplay().trim();
         if (!rawExpr) return;
@@ -999,6 +1009,9 @@
 
     function getEvaluatedDisplayValue() {
         if (hasError) return null;
+        if (resultDisplayed && fractionMode !== 'decimal' && typeof lastResult === 'number' && Number.isFinite(lastResult)) {
+            return lastResult;
+        }
         const cur = getDisplay().trim();
         if (!cur) return null;
 
@@ -1077,11 +1090,7 @@
             history = history.slice(0, 50);
         }
 
-        try {
-            localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
-        } catch (e) {
-            console.warn("Storage quota exceeded", e);
-        }
+        safeSet(STORAGE_KEY_HISTORY, JSON.stringify(history));
 
         renderHistory();
     }
@@ -1134,7 +1143,7 @@
 
     function loadHistory() {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
+            const saved = safeGet(STORAGE_KEY_HISTORY);
             if (saved) {
                 history = JSON.parse(saved);
             }
@@ -1156,11 +1165,7 @@
             } else {
                 history = history.filter(item => getHistoryItemMode(item) !== currentHistoryFilter);
             }
-            try {
-                localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
-            } catch (e) {
-                console.warn(e);
-            }
+            safeSet(STORAGE_KEY_HISTORY, JSON.stringify(history));
             renderHistory();
             renderSteps([], '', '');
         }
@@ -1270,7 +1275,9 @@
                     expressionDisplay.textContent = prettyPrint(item.expr) + ' =';
                     setDisplay(String(item.res));
                     resultDisplayed = true;
-                    lastResult = item.res;
+                    const n = Number(item.res);
+                    lastResult = Number.isFinite(n) ? n : item.res;
+                    lastFraction = Number.isFinite(n) ? MathParser.decimalToFraction(n) : null;
                     if (item.steps && item.steps.length > 0) {
                         renderSteps(item.steps, item.expr, item.res);
                     }
@@ -1361,6 +1368,18 @@
             if (e.key === 'Enter') {
                 handleSmartSubmit();
             }
+            return;
+        }
+
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        // Also ignore when target is a SELECT, TEXTAREA or BUTTON
+        if (e.target && ['SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) {
+            return;
+        }
+
+        // Ignore while any modal or formula sheet drawer is open
+        if (document.querySelector('.modal-backdrop.show') || document.querySelector('.formula-sheet-drawer.open')) {
             return;
         }
 
@@ -2107,7 +2126,7 @@
             if (saveToHistory && hasValidFn) {
                 const visibleFns = graphFunctions.filter(f => f.visible && f.expr.trim());
                 if (visibleFns.length > 0) {
-                    const fnLabels = visibleFns.map((f, i) => `f${i + 1} = ${f.expr}`).join(', ');
+                    const fnLabels = visibleFns.map((f) => `f${graphFunctions.indexOf(f) + 1} = ${f.expr}`).join(', ');
                     const resSummary = `${visibleFns.length} function${visibleFns.length > 1 ? 's' : ''} plotted`;
                     saveHistory(
                         `📈 ${fnLabels}`,
@@ -2130,11 +2149,12 @@
 
         function renderValueTable() {
             const rows = graphPlotterInstance.generateTable(-5, 5, 1);
-            const activeFns = graphFunctions.filter(f => f.visible && f.expr.trim());
+            const activeFns = graphPlotterInstance.functions.filter(f => f.visible && !f.compiled.error);
 
             let html = `<thead><tr><th>x</th>`;
-            activeFns.forEach((fn, idx) => {
-                html += `<th>f${idx + 1}</th>`;
+            activeFns.forEach((fn) => {
+                const fullIdx = graphPlotterInstance.functions.indexOf(fn);
+                html += `<th>f${fullIdx + 1}</th>`;
             });
             html += `</tr></thead><tbody>`;
 
@@ -2407,8 +2427,8 @@
             } else {
                 notesList.innerHTML = domainNotes.map(note => `
                     <div class="analysis-note-card ${note.type === 'asymptote' ? 'asymptote-warning' : ''}">
-                        <strong>${note.fnName}: ${note.title}</strong>
-                        <span>${note.message}</span>
+                        <strong>${escapeHtml(note.fnName)}: ${escapeHtml(note.title)}</strong>
+                        <span>${escapeHtml(note.message)}</span>
                     </div>
                 `).join('');
             }
@@ -2443,7 +2463,6 @@
 
         // Modals
         if (btnKeyboardHelp) btnKeyboardHelp.addEventListener('click', () => openModal(keyboardHelpModal));
-        if (btnPaletteModal) btnPaletteModal.addEventListener('click', () => openModal(paletteModal));
 
         // Close modal on click background or close buttons
         document.querySelectorAll('.modal-backdrop').forEach(modal => {
@@ -2451,14 +2470,6 @@
                 if (e.target === modal || e.target.classList.contains('modal-close-btn')) {
                     closeModal(modal);
                 }
-            });
-        });
-
-        // Palette Swatch Clicks
-        document.querySelectorAll('.palette-swatch').forEach(swatch => {
-            swatch.addEventListener('click', () => {
-                applyAccent(swatch.dataset.accentVal);
-                closeModal(paletteModal);
             });
         });
 
@@ -2689,7 +2700,7 @@
 
         // Initial sync
         syncSidebarTheme();
-        const currentAccent = localStorage.getItem('modern_calc_accent') || 'blue';
+        const currentAccent = safeGet(STORAGE_KEY_ACCENT) || 'blue';
         syncSidebarAccent(currentAccent);
         document.querySelectorAll('.sidebar-nav-item.mode-item').forEach(b => {
             b.classList.toggle('active', b.dataset.mode === currentMode);
@@ -3042,6 +3053,7 @@
         const overlay = document.getElementById('formula-sheet-overlay');
         if (!drawer || !overlay) return;
         formulaSheetReturnFocus = document.activeElement;
+        drawer.removeAttribute('inert');
         drawer.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
         overlay.classList.add('show');
@@ -3057,6 +3069,7 @@
         if (!drawer || !overlay) return;
         drawer.classList.remove('open');
         drawer.setAttribute('aria-hidden', 'true');
+        drawer.setAttribute('inert', '');
         overlay.classList.remove('show');
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
