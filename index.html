@@ -35,11 +35,13 @@
                     <span></span><span></span><span></span>
                 </span>
             </button>
+            <!-- Accessible Primary Heading -->
+            <h1 class="sr-only">Calyx &mdash; Modern Scientific &amp; Basic Calculator</h1>
         </div>
 
-<!-- Header Controls (History icon on top) -->
+        <!-- Header Controls (History icon on top) -->
         <div class="header-actions">
-            <button id="btn-history-toggle" class="icon-btn" title="History & Steps" aria-label="Toggle calculation history">📜</button>
+            <button id="btn-history-toggle" class="icon-btn" title="Calculation History" aria-label="Toggle calculation history">🕒</button>
         </div>
     </header>
 
@@ -87,9 +89,9 @@
                 <span class="sidebar-nav-icon">📐</span>
                 <span class="sidebar-nav-text">Formula Sheet</span>
             </button>
-            <button id="btn-sidebar-history" class="sidebar-nav-item" aria-label="Open History">
-                <span class="sidebar-nav-icon">📜</span>
-                <span class="sidebar-nav-text">History &amp; Steps</span>
+            <button id="btn-sidebar-history" class="sidebar-nav-item" aria-label="Open calculation history">
+                <span class="sidebar-nav-icon">🕒</span>
+                <span class="sidebar-nav-text">Calculation History</span>
             </button>
             <button id="btn-sidebar-keyboard" class="sidebar-nav-item" aria-label="Keyboard Shortcuts">
                 <span class="sidebar-nav-icon">⌨</span>
@@ -281,7 +283,7 @@
         <aside id="history-panel" class="history-panel" style="display: none;" role="complementary" aria-label="Calculation history and steps">
             <div class="history-header">
                 <div class="history-tabs">
-                    <button type="button" id="tab-btn-history" class="history-tab-btn active">📜 History</button>
+                    <button type="button" id="tab-btn-history" class="history-tab-btn active">🕒 History</button>
                     <button type="button" id="tab-btn-steps"   class="history-tab-btn">📐 Show Work</button>
                 </div>
                 <button type="button" id="btn-close-history" class="icon-btn" title="Close History" aria-label="Close history" style="margin-left: auto;">&#x2715;</button>
