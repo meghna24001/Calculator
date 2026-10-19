@@ -277,7 +277,42 @@ async function run() {
         });
         assert('Theme preset switches to dark', themeRes.result?.value?.theme === 'dark', `got theme: "${themeRes.result?.value?.theme}"`);
 
-        // 6. Assert no uncaught exceptions occurred during tests
+        // 6. Test Equation Solver mode via sidebar
+        console.log('Testing Equation Solver mode...');
+        const solverTestRes = await send('Runtime.evaluate', {
+            expression: `
+                (function() {
+                    const solverNavBtn = document.querySelector('.sidebar-nav-item[data-mode="solver"]');
+                    if (!solverNavBtn) return { success: false, error: 'Sidebar solver button not found' };
+                    solverNavBtn.click();
+
+                    const panel = document.querySelector('.solver-panel');
+                    if (!panel) return { success: false, error: 'Solver panel not mounted' };
+
+                    const input = document.getElementById('solver-input-single');
+                    const solveBtn = document.getElementById('btn-solver-solve');
+                    if (!input || !solveBtn) return { success: false, error: 'Input or solve button missing' };
+
+                    input.value = 'x^2 - 5x + 6 = 0';
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    solveBtn.click();
+
+                    const resCard = document.querySelector('.solver-result-card');
+                    const solVals = Array.from(document.querySelectorAll('.solver-sol-val')).map(el => el.textContent.trim());
+
+                    return {
+                        success: true,
+                        hasCard: !!resCard,
+                        solutions: solVals
+                    };
+                })()
+            `,
+            returnByValue: true
+        });
+
+        assert('Switched to Equation Solver and solved x^2 - 5x + 6 = 0', solverTestRes.result?.value?.success === true && solverTestRes.result?.value?.solutions?.includes('2') && solverTestRes.result?.value?.solutions?.includes('3'));
+
+        // 7. Assert no uncaught exceptions occurred during tests
         assert('No uncaught exceptions were logged', uncaughtExceptions.length === 0, `caught: ${uncaughtExceptions.join('; ')}`);
 
         console.log(`\nAll ${passedCount} browser E2E assertions passed successfully!`);

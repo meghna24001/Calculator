@@ -57,6 +57,13 @@
       "description": "Open 2D graphing calculator",
       "url": "./index.html?mode=graph",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Equation Solver",
+      "short_name": "Solver",
+      "description": "Open universal algebraic equation solver",
+      "url": "./index.html?mode=solver",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

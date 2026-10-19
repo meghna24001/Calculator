@@ -3,7 +3,7 @@
  * Provides robust offline functionality, cache invalidation, and fast loads.
  */
 
-const CACHE_NAME = 'calc-pwa-v1.2.3';
+const CACHE_NAME = 'calc-pwa-v1.3.0';
 
 const PRECACHE_ASSETS = [
     './',
@@ -15,6 +15,7 @@ const PRECACHE_ASSETS = [
     './js/parser.js',
     './js/converter.js',
     './js/grapher.js',
+    './js/solver.js',
     './js/app.js',
     './icons/icon-192.png',
     './icons/icon-512.png',

@@ -8,12 +8,13 @@ The project is built with HTML, CSS, and JavaScript, with no application package
 
 - **Basic and scientific calculations**, including common functions, percentages, fractions, and calculation history.
 - **Step-by-step working** to make calculations easier to follow.
+- **Algebraic Equation Solver** for single-variable linear, quadratic (real & complex conjugate roots), polynomial, and transcendental equations, plus 2×2 and 3×3 linear systems with full step-by-step working.
 - **Unit conversion** across categories such as length, temperature, speed, volume, and data storage.
 - **2D graphing** for plotting functions, exploring the graph, and viewing a table of values.
 - **Personalization** with light and dark themes, accent colors, and a responsive layout.
 - **PWA support**, including installation and offline caching.
 
-Use the menu in the app to switch between calculator modes. You can also open a mode directly with a URL, for example `index.html?mode=scientific` or `index.html?mode=converter`.
+Use the menu in the app to switch between calculator modes. You can also open a mode directly with a URL, for example `index.html?mode=scientific`, `index.html?mode=converter`, or `index.html?mode=solver`.
 
 ## Run the app
 
@@ -36,6 +37,7 @@ node js/test-parser.js
 node js/test-converter.js
 node js/test-grapher.js
 node js/test-critical-points.js
+node js/test-solver.js
 ```
 
 There is also a browser end-to-end test (requires Node.js 22+ with built-in WebSocket support):
@@ -62,10 +64,12 @@ The end-to-end test expects a compatible Chrome browser with its DevTools Protoc
 │   ├── parser.js            # Mathematical expression parsing and evaluation
 │   ├── converter.js         # Unit conversion logic
 │   ├── grapher.js           # Graph plotting and function analysis
+│   ├── solver.js            # Universal algebraic equation solving engine
 │   ├── test-parser.js       # Parser tests
 │   ├── test-converter.js    # Converter tests
 │   ├── test-grapher.js      # Grapher tests
 │   ├── test-critical-points.js # Additional graph analysis tests
+│   ├── test-solver.js       # Algebraic solver tests
 │   ├── browser-e2e.js       # Browser end-to-end test
 │   └── capture-themes.js    # Browser utility for capturing themes
 └── icons/                   # App icons and favicon

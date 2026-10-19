@@ -992,15 +992,15 @@
         clean = resolvePercentages(clean, defaultAngleMode);
         const tokens = tokenize(clean);
         const processed = insertImplicitMultiplication(tokens);
-        // Verify syntax with test scope { x: 1, y: 1 }
-        const testParser = new Parser(processed, defaultAngleMode, null, { x: 1, y: 1 });
+        // Verify syntax with test scope { x: 1, y: 1, z: 1 }
+        const testParser = new Parser(processed, defaultAngleMode, null, { x: 1, y: 1, z: 1 });
         testParser.parseExpression();
         if (testParser.peek()) {
             throw new CalculationError(`Unexpected token "${testParser.peek().value}"`);
         }
         return function (scope = {}, angleMode = defaultAngleMode) {
             try {
-                const s = Object.assign({ x: 0, y: 0 }, scope);
+                const s = Object.assign({ x: 0, y: 0, z: 0 }, scope);
                 const parser = new Parser(processed, angleMode, null, s);
                 const val = parser.parseExpression();
                 return (typeof val === 'number' && Number.isFinite(val)) ? val : NaN;
@@ -1209,6 +1209,7 @@
     return {
         evaluate,
         compile,
+        compileSingleExpression,
         tokenize,
         resolvePercentages,
         naturalLanguageToMath,

@@ -258,7 +258,7 @@
         // 2. Initial Mode: Always show Basic Calculator by default when opening the site
         const urlParams = new URLSearchParams(window.location.search);
         const modeParam = urlParams.get('mode');
-        if (modeParam === 'scientific' || modeParam === 'basic' || modeParam === 'converter' || modeParam === 'graph') {
+        if (modeParam === 'scientific' || modeParam === 'basic' || modeParam === 'converter' || modeParam === 'graph' || modeParam === 'solver') {
             currentMode = modeParam;
         } else {
             currentMode = 'basic';
@@ -360,6 +360,7 @@
 
         const isConverter = mode === 'converter';
         const isGraph = mode === 'graph';
+        const isSolver = mode === 'solver';
         const isScientific = mode === 'scientific';
 
         // Update Segmented Tab Pills (if present)
@@ -390,13 +391,14 @@
         calcCard.classList.toggle('mode-scientific', isScientific);
         calcCard.classList.toggle('mode-converter', isConverter);
         calcCard.classList.toggle('mode-graph', isGraph);
+        calcCard.classList.toggle('mode-solver', isSolver);
 
-        // In converter and graph mode, hide the standard display, memory bar, and smart query bar
+        // In converter, graph and solver mode, hide the standard display, memory bar, and smart query bar
         const displayBox  = document.getElementById('display-container');
         const memToolbar  = document.getElementById('memory-toolbar');
         const smartBar    = document.querySelector('.smart-query-bar');
 
-        const isCustomPanel = isConverter || isGraph;
+        const isCustomPanel = isConverter || isGraph || isSolver;
         displayBox.style.display  = isCustomPanel ? 'none' : '';
         memToolbar.style.display  = isCustomPanel ? 'none' : '';
         smartBar.style.display    = isCustomPanel ? 'none' : '';
@@ -450,6 +452,8 @@
             renderConverterUI();
         } else if (currentMode === 'graph') {
             renderGraphUI();
+        } else if (currentMode === 'solver') {
+            renderSolverUI();
         }
     }
 
@@ -1064,6 +1068,7 @@
 
     function getHistoryItemMode(item) {
         if (item.mode) return item.mode;
+        if (item.expr && item.expr.startsWith('Solve:')) return 'solver';
         if (item.expr && item.expr.includes('→')) return 'converter';
         if (item.expr && (item.expr.includes('📈') || item.expr.startsWith('f(') || item.expr.startsWith('y='))) return 'graph';
         if (/sin|cos|tan|log|ln|root|√|π|\^|!|nPr|nCr|mean|median|sd|var|lcm|hcf|mod/i.test(item.expr || '')) {
@@ -1201,11 +1206,12 @@
 
             const exprEl = document.createElement('div');
             exprEl.className = 'hist-expr';
-            exprEl.textContent = itemMode === 'converter' || itemMode === 'graph' ? item.expr : `${prettyPrint(item.expr)} =`;
+            const isCustomExpr = itemMode === 'converter' || itemMode === 'graph' || itemMode === 'solver';
+            exprEl.textContent = isCustomExpr ? item.expr : `${prettyPrint(item.expr)} =`;
 
             const modeTag = document.createElement('span');
             modeTag.className = `hist-mode-tag mode-${itemMode}`;
-            modeTag.textContent = itemMode === 'converter' ? 'Convert' : (itemMode === 'graph' ? 'Graph' : (itemMode === 'scientific' ? 'Scientific' : 'Basic'));
+            modeTag.textContent = itemMode === 'converter' ? 'Convert' : (itemMode === 'graph' ? 'Graph' : (itemMode === 'solver' ? 'Solver' : (itemMode === 'scientific' ? 'Scientific' : 'Basic')));
 
             headerEl.appendChild(exprEl);
             headerEl.appendChild(modeTag);
@@ -1221,13 +1227,15 @@
             const replayBtn = document.createElement('button');
             replayBtn.type = 'button';
             replayBtn.className = 'hist-action';
-            replayBtn.textContent = itemMode === 'converter' || itemMode === 'graph' ? '↻ Open' : '↻ Replay';
+            replayBtn.textContent = isCustomExpr ? '↻ Open' : '↻ Replay';
             replayBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (itemMode === 'converter') {
                     setMode('converter');
                 } else if (itemMode === 'graph') {
                     restoreGraphFromHistory(item);
+                } else if (itemMode === 'solver') {
+                    restoreSolverFromHistory(item);
                 } else {
                     if (currentMode !== itemMode && (itemMode === 'basic' || itemMode === 'scientific')) {
                         setMode(itemMode);
@@ -1246,7 +1254,7 @@
             copyBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 try {
-                    const copyText = itemMode === 'converter' ? `${item.expr} : ${item.res}` : (itemMode === 'graph' ? item.expr : String(item.res));
+                    const copyText = (itemMode === 'converter' || itemMode === 'solver') ? `${item.expr} : ${item.res}` : (itemMode === 'graph' ? item.expr : String(item.res));
                     await navigator.clipboard.writeText(copyText);
                     copyBtn.textContent = '✓ Copied';
                     setTimeout(() => copyBtn.textContent = '📋 Copy', 1200);
@@ -1268,6 +1276,8 @@
                     setMode('converter');
                 } else if (itemMode === 'graph') {
                     restoreGraphFromHistory(item);
+                } else if (itemMode === 'solver') {
+                    restoreSolverFromHistory(item);
                 } else {
                     if (currentMode !== itemMode && (itemMode === 'basic' || itemMode === 'scientific')) {
                         setMode(itemMode);
@@ -1303,16 +1313,16 @@
         intro.textContent = `Evaluating: ${prettyPrint(originalExpr)}`;
         stepsList.appendChild(intro);
 
-        steps.forEach(s => {
+        steps.forEach((s, idx) => {
             const card = document.createElement('div');
             card.className = 'step-card';
 
             const header = document.createElement('div');
             header.className = 'step-header';
-            header.textContent = `Step ${s.step}`;
+            header.textContent = typeof s === 'string' ? `Step ${idx + 1}` : `Step ${s.step}`;
 
             const detail = document.createElement('div');
-            detail.textContent = `${prettyPrint(s.expression)}  ➜  ${prettyPrint(String(s.result))}`;
+            detail.textContent = typeof s === 'string' ? s : `${prettyPrint(s.expression)}  ➜  ${prettyPrint(String(s.result))}`;
 
             card.appendChild(header);
             card.appendChild(detail);
@@ -1366,7 +1376,11 @@
         // Ignore if focus is in an input field
         if (e.target && e.target.tagName === 'INPUT') {
             if (e.key === 'Enter') {
-                handleSmartSubmit();
+                if (e.target.closest('.solver-panel')) {
+                    executeSolver();
+                } else {
+                    handleSmartSubmit();
+                }
             }
             return;
         }
@@ -2432,6 +2446,416 @@
                     </div>
                 `).join('');
             }
+        }
+    }
+
+    // ==========================================
+    // ALGEBRAIC EQUATION SOLVER UI & CONTROLS
+    // ==========================================
+
+    let solverSubTab = 'single'; // 'single' | 'system2' | 'system3'
+    let solverInputs = {
+        single: 'x^2 - 5x + 6 = 0',
+        system2_1: '2x + 3y = 8',
+        system2_2: '3x - y = 1',
+        system3_1: 'x + y + z = 6',
+        system3_2: '2y + 5z = -4',
+        system3_3: '2x + 5y - z = 27'
+    };
+    let solverLastResult = null;
+    let solverShowSteps = true;
+    let executeSolver = () => {};
+
+    function restoreSolverFromHistory(item) {
+        setMode('solver');
+        if (item.meta && item.meta.subTab) {
+            solverSubTab = item.meta.subTab;
+            if (item.meta.inputs) {
+                solverInputs = Object.assign(solverInputs, item.meta.inputs);
+            }
+        } else if (item.expr) {
+            const clean = item.expr.replace(/^Solve:\s*/, '').trim();
+            if (clean.includes(';')) {
+                const parts = clean.split(';').map(p => p.trim());
+                if (parts.length === 2) {
+                    solverSubTab = 'system2';
+                    solverInputs.system2_1 = parts[0];
+                    solverInputs.system2_2 = parts[1];
+                } else if (parts.length === 3) {
+                    solverSubTab = 'system3';
+                    solverInputs.system3_1 = parts[0];
+                    solverInputs.system3_2 = parts[1];
+                    solverInputs.system3_3 = parts[2];
+                }
+            } else {
+                solverSubTab = 'single';
+                solverInputs.single = clean;
+            }
+        }
+        renderKeypad();
+        executeSolver(false);
+        if (historyPanel) historyPanel.style.display = 'none';
+        if (btnHistoryToggle) btnHistoryToggle.classList.remove('active');
+    }
+
+    function renderSolverUI() {
+        keypad.className = 'solver-panel';
+        keypad.innerHTML = `
+            <div class="solver-container">
+                <!-- Solver Sub-Tabs -->
+                <div class="solver-tabs-wrap">
+                    <div class="solver-tabs" role="tablist" aria-label="Equation solver categories">
+                        <button type="button" class="solver-tab-btn ${solverSubTab === 'single' ? 'active' : ''}" data-solver-tab="single" role="tab" aria-selected="${solverSubTab === 'single'}">
+                            <span class="solver-tab-main">1-Var</span>
+                            <span class="solver-tab-sub">Single (x)</span>
+                        </button>
+                        <button type="button" class="solver-tab-btn ${solverSubTab === 'system2' ? 'active' : ''}" data-solver-tab="system2" role="tab" aria-selected="${solverSubTab === 'system2'}">
+                            <span class="solver-tab-main">2×2 System</span>
+                            <span class="solver-tab-sub">(x, y)</span>
+                        </button>
+                        <button type="button" class="solver-tab-btn ${solverSubTab === 'system3' ? 'active' : ''}" data-solver-tab="system3" role="tab" aria-selected="${solverSubTab === 'system3'}">
+                            <span class="solver-tab-main">3×3 System</span>
+                            <span class="solver-tab-sub">(x, y, z)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Examples Bar -->
+                <div class="solver-examples-bar" aria-label="Quick example equations">
+                    <span class="solver-examples-label">Examples:</span>
+                    <div class="solver-examples-list" id="solver-examples-list"></div>
+                </div>
+
+                <!-- Input Card -->
+                <div class="solver-card">
+                    <div id="solver-inputs-container" class="solver-inputs-container"></div>
+
+                    <!-- Action Controls -->
+                    <div class="solver-action-row">
+                        <button type="button" id="btn-solver-solve" class="solver-solve-btn" aria-label="Solve equation">
+                            <span>🧮</span> Solve Equation
+                        </button>
+                        <button type="button" id="btn-solver-clear" class="solver-clear-btn" aria-label="Clear equation inputs">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Solution Result Output Card -->
+                <div id="solver-result-container" class="solver-result-container" aria-live="polite"></div>
+            </div>
+        `;
+
+        setupSolverControls();
+    }
+
+    function setupSolverControls() {
+        const inputsContainer = document.getElementById('solver-inputs-container');
+        const examplesList = document.getElementById('solver-examples-list');
+        const resultContainer = document.getElementById('solver-result-container');
+        const btnSolve = document.getElementById('btn-solver-solve');
+        const btnClear = document.getElementById('btn-solver-clear');
+
+        // 1. Render Inputs Based on Current Sub-Tab
+        function renderInputs() {
+            if (!inputsContainer) return;
+            if (solverSubTab === 'single') {
+                inputsContainer.innerHTML = `
+                    <div class="solver-input-row">
+                        <label for="solver-input-single" class="solver-input-label">Equation (in x):</label>
+                        <input type="text" id="solver-input-single" class="solver-input" placeholder="e.g. x^2 - 5x + 6 = 0 or 2x + 7 = 15" value="${escapeHtml(solverInputs.single)}" autocomplete="off" spellcheck="false">
+                    </div>
+                `;
+            } else if (solverSubTab === 'system2') {
+                inputsContainer.innerHTML = `
+                    <div class="solver-input-row">
+                        <label for="solver-input-sys2-1" class="solver-input-label">Equation 1:</label>
+                        <input type="text" id="solver-input-sys2-1" class="solver-input" placeholder="e.g. 2x + 3y = 8" value="${escapeHtml(solverInputs.system2_1)}" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="solver-input-row">
+                        <label for="solver-input-sys2-2" class="solver-input-label">Equation 2:</label>
+                        <input type="text" id="solver-input-sys2-2" class="solver-input" placeholder="e.g. 3x - y = 1" value="${escapeHtml(solverInputs.system2_2)}" autocomplete="off" spellcheck="false">
+                    </div>
+                `;
+            } else if (solverSubTab === 'system3') {
+                inputsContainer.innerHTML = `
+                    <div class="solver-input-row">
+                        <label for="solver-input-sys3-1" class="solver-input-label">Equation 1:</label>
+                        <input type="text" id="solver-input-sys3-1" class="solver-input" placeholder="e.g. x + y + z = 6" value="${escapeHtml(solverInputs.system3_1)}" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="solver-input-row">
+                        <label for="solver-input-sys3-2" class="solver-input-label">Equation 2:</label>
+                        <input type="text" id="solver-input-sys3-2" class="solver-input" placeholder="e.g. 2y + 5z = -4" value="${escapeHtml(solverInputs.system3_2)}" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="solver-input-row">
+                        <label for="solver-input-sys3-3" class="solver-input-label">Equation 3:</label>
+                        <input type="text" id="solver-input-sys3-3" class="solver-input" placeholder="e.g. 2x + 5y - z = 27" value="${escapeHtml(solverInputs.system3_3)}" autocomplete="off" spellcheck="false">
+                    </div>
+                `;
+            }
+
+            // Sync inputs on typing
+            inputsContainer.querySelectorAll('.solver-input').forEach(inp => {
+                inp.addEventListener('input', () => {
+                    syncInputsFromDOM();
+                });
+            });
+        }
+
+        function syncInputsFromDOM() {
+            if (solverSubTab === 'single') {
+                const el = document.getElementById('solver-input-single');
+                if (el) solverInputs.single = el.value;
+            } else if (solverSubTab === 'system2') {
+                const el1 = document.getElementById('solver-input-sys2-1');
+                const el2 = document.getElementById('solver-input-sys2-2');
+                if (el1) solverInputs.system2_1 = el1.value;
+                if (el2) solverInputs.system2_2 = el2.value;
+            } else if (solverSubTab === 'system3') {
+                const el1 = document.getElementById('solver-input-sys3-1');
+                const el2 = document.getElementById('solver-input-sys3-2');
+                const el3 = document.getElementById('solver-input-sys3-3');
+                if (el1) solverInputs.system3_1 = el1.value;
+                if (el2) solverInputs.system3_2 = el2.value;
+                if (el3) solverInputs.system3_3 = el3.value;
+            }
+        }
+
+        // 2. Render Examples Bar
+        const EXAMPLES = {
+            single: [
+                { label: 'Quadratic', eq: 'x^2 - 5x + 6 = 0' },
+                { label: 'Complex Roots', eq: 'x^2 + 4 = 0' },
+                { label: 'Linear', eq: '3x - 5 = 2x + 7' },
+                { label: 'Cubic', eq: 'x^3 - 6x^2 + 11x - 6 = 0' },
+                { label: 'Trigonometric', eq: 'sin(x) = 0.5' },
+                { label: 'Exponential', eq: '2^x = 16' }
+            ],
+            system2: [
+                { label: 'Linear 2×2', eq1: '2x + 3y = 8', eq2: '3x - y = 1' },
+                { label: 'Fractions', eq1: '3x - 4y = 7', eq2: '5x + 2y = 3' },
+                { label: 'Dependent', eq1: '2x + 4y = 8', eq2: 'x + 2y = 4' },
+                { label: 'Inconsistent', eq1: 'x + y = 2', eq2: 'x + y = 5' }
+            ],
+            system3: [
+                { label: 'Standard 3×3', eq1: 'x + y + z = 6', eq2: '2y + 5z = -4', eq3: '2x + 5y - z = 27' },
+                { label: 'System B', eq1: 'x + 2y + 3z = 9', eq2: '2x - y + z = 8', eq3: '3x - z = 3' }
+            ]
+        };
+
+        function renderExamples() {
+            if (!examplesList) return;
+            const list = EXAMPLES[solverSubTab] || [];
+            examplesList.innerHTML = list.map((item, idx) => `
+                <button type="button" class="solver-example-pill" data-example-idx="${idx}">
+                    ${escapeHtml(item.label)}
+                </button>
+            `).join('');
+
+            examplesList.querySelectorAll('.solver-example-pill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.exampleIdx, 10);
+                    const ex = list[idx];
+                    if (!ex) return;
+
+                    if (solverSubTab === 'single') {
+                        solverInputs.single = ex.eq;
+                    } else if (solverSubTab === 'system2') {
+                        solverInputs.system2_1 = ex.eq1;
+                        solverInputs.system2_2 = ex.eq2;
+                    } else if (solverSubTab === 'system3') {
+                        solverInputs.system3_1 = ex.eq1;
+                        solverInputs.system3_2 = ex.eq2;
+                        solverInputs.system3_3 = ex.eq3;
+                    }
+
+                    renderInputs();
+                    executeSolver(true);
+                });
+            });
+        }
+
+        // 3. Tab switching listeners
+        document.querySelectorAll('.solver-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.solverTab;
+                if (tab && tab !== solverSubTab) {
+                    solverSubTab = tab;
+                    document.querySelectorAll('.solver-tab-btn').forEach(b => {
+                        const isActive = b.dataset.solverTab === solverSubTab;
+                        b.classList.toggle('active', isActive);
+                        b.setAttribute('aria-selected', String(isActive));
+                    });
+                    renderExamples();
+                    renderInputs();
+                    if (resultContainer) resultContainer.innerHTML = '';
+                }
+            });
+        });
+
+        // 4. Execution Logic
+        executeSolver = function (saveToHistoryFlag = true) {
+            syncInputsFromDOM();
+            if (typeof AlgebraicSolver === 'undefined') {
+                if (resultContainer) {
+                    resultContainer.innerHTML = '<div class="solver-error-card">Equation Solver module not loaded.</div>';
+                }
+                return;
+            }
+
+            let result = null;
+            let exprSummary = '';
+
+            if (solverSubTab === 'single') {
+                exprSummary = solverInputs.single.trim();
+                result = AlgebraicSolver.solveEquation(exprSummary, { angleMode: angleMode || 'RAD' });
+            } else if (solverSubTab === 'system2') {
+                exprSummary = `${solverInputs.system2_1.trim()} ; ${solverInputs.system2_2.trim()}`;
+                result = AlgebraicSolver.solveSystem2(solverInputs.system2_1, solverInputs.system2_2);
+            } else if (solverSubTab === 'system3') {
+                exprSummary = `${solverInputs.system3_1.trim()} ; ${solverInputs.system3_2.trim()} ; ${solverInputs.system3_3.trim()}`;
+                result = AlgebraicSolver.solveSystem3(solverInputs.system3_1, solverInputs.system3_2, solverInputs.system3_3);
+            }
+
+            solverLastResult = result;
+            renderResultCard(result, exprSummary);
+
+            if (saveToHistoryFlag && result && !result.error) {
+                saveHistory(
+                    `Solve: ${exprSummary}`,
+                    result.summary,
+                    result.steps || [],
+                    'solver',
+                    { subTab: solverSubTab, inputs: Object.assign({}, solverInputs) }
+                );
+            }
+        };
+
+        function renderResultCard(res, exprSummary) {
+            if (!resultContainer) return;
+
+            if (!res) {
+                resultContainer.innerHTML = '';
+                return;
+            }
+
+            if (res.error) {
+                resultContainer.innerHTML = `
+                    <div class="solver-error-card" role="alert">
+                        <span class="solver-error-icon">⚠️</span>
+                        <div class="solver-error-text">
+                            <strong>Unable to Solve:</strong>
+                            <span>${escapeHtml(res.error)}</span>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Solutions List
+            let solutionsHtml = '';
+            if (res.solutions && res.solutions.length > 0) {
+                solutionsHtml = `
+                    <div class="solver-solutions-grid">
+                        ${res.solutions.map(sol => `
+                            <div class="solver-sol-box">
+                                <span class="solver-sol-label">${escapeHtml(sol.label)} =</span>
+                                <span class="solver-sol-val">${escapeHtml(sol.formatted)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                solutionsHtml = `
+                    <div class="solver-sol-summary-text">
+                        ${escapeHtml(res.summary)}
+                    </div>
+                `;
+            }
+
+            // Steps section
+            let stepsHtml = '';
+            if (res.steps && res.steps.length > 0) {
+                stepsHtml = `
+                    <div class="solver-steps-wrapper">
+                        <button type="button" class="solver-steps-toggle" id="btn-solver-steps-toggle" aria-expanded="${solverShowSteps}">
+                            <span>${solverShowSteps ? '▾ Hide Step-by-Step Resolution' : '▸ Show Step-by-Step Resolution'}</span>
+                        </button>
+                        <div class="solver-steps-box" id="solver-steps-box" style="display: ${solverShowSteps ? 'flex' : 'none'};">
+                            ${res.steps.map((st, i) => `
+                                <div class="solver-step-item">
+                                    <span class="solver-step-num">${i + 1}</span>
+                                    <span class="solver-step-text">${escapeHtml(st)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultContainer.innerHTML = `
+                <div class="solver-result-card">
+                    <div class="solver-result-header">
+                        <span class="solver-badge">${escapeHtml(res.category || 'Solution')}</span>
+                        <span class="solver-eq-tag">${escapeHtml(exprSummary)}</span>
+                    </div>
+
+                    ${solutionsHtml}
+
+                    ${stepsHtml}
+                </div>
+            `;
+
+            // Toggle steps event
+            const btnToggleSteps = document.getElementById('btn-solver-steps-toggle');
+            const stepsBox = document.getElementById('solver-steps-box');
+            if (btnToggleSteps && stepsBox) {
+                btnToggleSteps.addEventListener('click', () => {
+                    solverShowSteps = !solverShowSteps;
+                    stepsBox.style.display = solverShowSteps ? 'flex' : 'none';
+                    btnToggleSteps.setAttribute('aria-expanded', String(solverShowSteps));
+                    btnToggleSteps.querySelector('span').textContent = solverShowSteps
+                        ? '▾ Hide Step-by-Step Resolution'
+                        : '▸ Show Step-by-Step Resolution';
+                });
+            }
+        }
+
+        // 5. Button click events
+        if (btnSolve) {
+            btnSolve.addEventListener('click', () => {
+                executeSolver(true);
+            });
+        }
+
+        if (btnClear) {
+            btnClear.addEventListener('click', () => {
+                if (solverSubTab === 'single') {
+                    solverInputs.single = '';
+                } else if (solverSubTab === 'system2') {
+                    solverInputs.system2_1 = '';
+                    solverInputs.system2_2 = '';
+                } else if (solverSubTab === 'system3') {
+                    solverInputs.system3_1 = '';
+                    solverInputs.system3_2 = '';
+                    solverInputs.system3_3 = '';
+                }
+                renderInputs();
+                if (resultContainer) resultContainer.innerHTML = '';
+                const firstInput = inputsContainer ? inputsContainer.querySelector('input') : null;
+                if (firstInput) firstInput.focus();
+            });
+        }
+
+        // Initial render
+        renderExamples();
+        renderInputs();
+        if (solverLastResult) {
+            let expr = '';
+            if (solverSubTab === 'single') expr = solverInputs.single;
+            else if (solverSubTab === 'system2') expr = `${solverInputs.system2_1} ; ${solverInputs.system2_2}`;
+            else if (solverSubTab === 'system3') expr = `${solverInputs.system3_1} ; ${solverInputs.system3_2} ; ${solverInputs.system3_3}`;
+            renderResultCard(solverLastResult, expr);
         }
     }
 
