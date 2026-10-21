@@ -584,7 +584,151 @@ body {
     padding: 16px;
     width: 100%;
     max-width: 380px;
-    transition: max-width var(--transition-normal), width var(--transition-normal);
+    transition: max-width var(--transition-normal), width var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+/* Mode transition animations */
+.calculator-card.mode-switching {
+    pointer-events: none;
+}
+
+.calculator-card.mode-switching .keypad-grid,
+.calculator-card.mode-switching .converter-panel,
+.calculator-card.mode-switching .graph-panel,
+.calculator-card.mode-switching .solver-panel {
+    animation: modeFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered animations for panel contents */
+.calculator-card.mode-switching .converter-panel > *,
+.calculator-card.mode-switching .graph-panel > *,
+.calculator-card.mode-switching .solver-panel > * {
+    animation: panelItemFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.calculator-card.mode-switching .converter-panel > *:nth-child(1)  { animation-delay: 0.05s; }
+.calculator-card.mode-switching .converter-panel > *:nth-child(2)  { animation-delay: 0.10s; }
+.calculator-card.mode-switching .converter-panel > *:nth-child(3)  { animation-delay: 0.15s; }
+.calculator-card.mode-switching .converter-panel > *:nth-child(4)  { animation-delay: 0.20s; }
+.calculator-card.mode-switching .converter-panel > *:nth-child(5)  { animation-delay: 0.25s; }
+.calculator-card.mode-switching .graph-panel > *:nth-child(1)     { animation-delay: 0.05s; }
+.calculator-card.mode-switching .graph-panel > *:nth-child(2)     { animation-delay: 0.10s; }
+.calculator-card.mode-switching .graph-panel > *:nth-child(3)     { animation-delay: 0.15s; }
+.calculator-card.mode-switching .graph-panel > *:nth-child(4)     { animation-delay: 0.20s; }
+.calculator-card.mode-switching .graph-panel > *:nth-child(5)     { animation-delay: 0.25s; }
+.calculator-card.mode-switching .solver-panel > *:nth-child(1)    { animation-delay: 0.05s; }
+.calculator-card.mode-switching .solver-panel > *:nth-child(2)    { animation-delay: 0.10s; }
+.calculator-card.mode-switching .solver-panel > *:nth-child(3)    { animation-delay: 0.15s; }
+.calculator-card.mode-switching .solver-panel > *:nth-child(4)    { animation-delay: 0.20s; }
+.calculator-card.mode-switching .solver-panel > *:nth-child(5)    { animation-delay: 0.25s; }
+
+@keyframes panelItemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modeFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Staggered key appearance for mode switch */
+.calculator-card.mode-switching .keypad-grid .calc-btn {
+    animation: keyPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    opacity: 0;
+}
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(1)  { animation-delay: 0.00s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(2)  { animation-delay: 0.02s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(3)  { animation-delay: 0.04s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(4)  { animation-delay: 0.06s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(5)  { animation-delay: 0.08s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(6)  { animation-delay: 0.10s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(7)  { animation-delay: 0.12s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(8)  { animation-delay: 0.14s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(9)  { animation-delay: 0.16s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(10) { animation-delay: 0.18s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(11) { animation-delay: 0.20s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(12) { animation-delay: 0.22s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(13) { animation-delay: 0.24s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(14) { animation-delay: 0.26s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(15) { animation-delay: 0.28s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(16) { animation-delay: 0.30s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(17) { animation-delay: 0.32s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(18) { animation-delay: 0.34s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(19) { animation-delay: 0.36s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(20) { animation-delay: 0.38s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(21) { animation-delay: 0.40s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(22) { animation-delay: 0.42s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(23) { animation-delay: 0.44s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(24) { animation-delay: 0.46s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(25) { animation-delay: 0.48s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(26) { animation-delay: 0.50s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(27) { animation-delay: 0.52s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(28) { animation-delay: 0.54s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(29) { animation-delay: 0.56s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(30) { animation-delay: 0.58s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(31) { animation-delay: 0.60s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(32) { animation-delay: 0.62s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(33) { animation-delay: 0.64s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(34) { animation-delay: 0.66s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(35) { animation-delay: 0.68s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(36) { animation-delay: 0.70s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(37) { animation-delay: 0.72s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(38) { animation-delay: 0.74s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(39) { animation-delay: 0.76s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(40) { animation-delay: 0.78s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(41) { animation-delay: 0.80s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(42) { animation-delay: 0.82s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(43) { animation-delay: 0.84s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(44) { animation-delay: 0.86s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(45) { animation-delay: 0.88s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(46) { animation-delay: 0.90s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(47) { animation-delay: 0.92s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(48) { animation-delay: 0.94s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(49) { animation-delay: 0.96s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(50) { animation-delay: 0.98s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(51) { animation-delay: 1.00s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(52) { animation-delay: 1.02s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(53) { animation-delay: 1.04s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(54) { animation-delay: 1.06s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(55) { animation-delay: 1.08s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(56) { animation-delay: 1.10s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(57) { animation-delay: 1.12s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(58) { animation-delay: 1.14s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(59) { animation-delay: 1.16s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(60) { animation-delay: 1.18s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(61) { animation-delay: 1.20s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(62) { animation-delay: 1.22s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(63) { animation-delay: 1.24s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(64) { animation-delay: 1.26s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(65) { animation-delay: 1.28s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(66) { animation-delay: 1.30s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(67) { animation-delay: 1.32s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(68) { animation-delay: 1.34s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(69) { animation-delay: 1.36s; }
+.calculator-card.mode-switching .keypad-grid .calc-btn:nth-child(70) { animation-delay: 1.38s; }
+
+@keyframes keyPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 [data-theme="dark"] .calculator-card {
@@ -740,7 +884,7 @@ body {
     display: flex;
     gap: var(--space-grid, 10px);
     margin-bottom: var(--space-grid, 10px);
-    min-height: 44px;
+    min-height: 36px;
 }
 
 .smart-input {
@@ -749,8 +893,8 @@ body {
     background: var(--bg-display);
     color: var(--text-primary);
     border-radius: var(--radius-md);
-    padding: 10px 14px;
-    font-size: var(--fs-md, 0.95rem);
+    padding: 6px 12px;
+    font-size: var(--fs-sm, 0.85rem);
     font-family: inherit;
     outline: none;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -765,12 +909,12 @@ body {
     border: none;
     background: var(--accent-primary);
     color: var(--accent-text, #ffffff);
-    padding: 10px 16px;
+    padding: 6px 12px;
     border-radius: var(--radius-md);
-    font-size: var(--fs-base, 0.875rem);
+    font-size: var(--fs-sm, 0.85rem);
     font-weight: 600;
     cursor: pointer;
-    min-width: 90px;
+    min-width: 70px;
     transition: all var(--transition-fast);
 }
 
@@ -840,6 +984,7 @@ body {
 /* Common Button Styles */
 .calc-btn {
     position: relative;
+    overflow: hidden;
     border: 1px solid transparent;
     border-radius: var(--radius-md);
     min-height: 48px;
@@ -855,7 +1000,38 @@ body {
 }
 
 .calc-btn:active {
-    transform: scale(0.94);
+    transform: scale(0.92);
+    box-shadow: var(--btn-active-shadow, 0 2px 8px rgba(0, 0, 0, 0.15));
+}
+
+/* Ripple effect */
+.calc-btn::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.calc-btn:active::after {
+    animation: ripple 0.35s ease-out forwards;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
 }
 
 .calc-btn:focus-visible {
@@ -1067,16 +1243,30 @@ body {
     padding: 3px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-color);
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+    min-height: 38px;
+    align-items: center;
+}
+
+.history-filter-bar::-webkit-scrollbar {
+    height: 3px;
+}
+.history-filter-bar::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 4px;
 }
 
 .hist-filter-btn {
-    flex: 1;
+    flex: 0 0 auto;
     border: none;
     background: transparent;
     color: var(--text-secondary);
     font-size: 0.72rem;
     font-weight: 600;
-    padding: 5px 4px;
+    padding: 5px 10px;
     border-radius: 6px;
     cursor: pointer;
     text-align: center;
@@ -2658,16 +2848,14 @@ body {
     justify-content: space-between;
     padding: 20px 18px 16px;
     border-bottom: 1px solid rgba(109, 82, 126, 0.12);
-    background: rgba(255, 255, 255, 0.52);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--panel-bg);
     position: sticky;
     top: 0;
     z-index: 2;
 }
 
 [data-theme="dark"] .sidebar-header {
-    background: rgba(37, 20, 45, 0.72);
+    background: var(--panel-bg);
     border-bottom: 1px solid rgba(216, 180, 254, 0.12);
 }
 

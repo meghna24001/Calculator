@@ -292,6 +292,14 @@
         const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
         applyTheme(initialTheme);
 
+        // Listen for system theme changes (only if user hasn't explicitly chosen a theme)
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', (e) => {
+            if (!safeGet(STORAGE_KEY_THEME)) {
+                applyTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
         const savedAccent = safeGet(STORAGE_KEY_ACCENT) || 'blue';
         applyAccent(savedAccent);
     }
@@ -362,6 +370,11 @@
         const isGraph = mode === 'graph';
         const isSolver = mode === 'solver';
         const isScientific = mode === 'scientific';
+
+        // Trigger mode switch animation
+        calcCard.classList.add('mode-switching');
+        // Force reflow
+        void calcCard.offsetWidth;
 
         // Update Segmented Tab Pills (if present)
         if (modeBtnBasic) {
@@ -434,6 +447,9 @@
         renderKeypad();
         fitDisplay();
         fitExpression();
+
+        // Remove mode-switching class after animation
+        setTimeout(() => calcCard.classList.remove('mode-switching'), 300);
     }
 
     // ==========================================
@@ -717,6 +733,7 @@
     }
 
     function appendInput(val) {
+        hapticFeedback('light');
         resetIfError();
         if (resultDisplayed && fractionMode !== 'decimal') {
             setDisplay(String(lastResult));
@@ -796,7 +813,23 @@
         resultDisplayed = false;
     }
 
+    // Haptic feedback for mobile
+    function hapticFeedback(type = 'light') {
+        if ('vibrate' in navigator) {
+            const patterns = {
+                light: 10,
+                medium: 20,
+                heavy: 30,
+                selection: [5, 5, 5],
+                success: [10, 10, 10],
+                error: [50, 30, 50]
+            };
+            navigator.vibrate(patterns[type] || patterns.light);
+        }
+    }
+
     function backspace() {
+        hapticFeedback('light');
         if (resultDisplayed) {
             clearAll();
             return;
@@ -814,6 +847,7 @@
     }
 
     function clearAll() {
+        hapticFeedback('medium');
         setDisplay('');
         expressionDisplay.textContent = '';
         resultDisplayed = false;
@@ -935,6 +969,7 @@
     }
     
     function calculate() {
+        hapticFeedback('medium');
         if (hasError) return;
         const shown = getDisplay().trim();
         if (!shown) return;
@@ -1033,6 +1068,7 @@
     }
 
     function memoryClear() {
+        hapticFeedback('medium');
         if (memoryValue === null) return;
         memoryValue = null;
         updateMemoryBadge();
@@ -1040,11 +1076,13 @@
     }
 
     function memoryRecall() {
+        hapticFeedback('light');
         if (memoryValue === null) return;
         insertValue(memoryValue);
     }
 
     function memoryAdd() {
+        hapticFeedback('light');
         const val = getEvaluatedDisplayValue();
         if (val === null) return;
 
@@ -1054,6 +1092,7 @@
     }
 
     function memorySubtract() {
+        hapticFeedback('light');
         const val = getEvaluatedDisplayValue();
         if (val === null) return;
 
@@ -1597,6 +1636,7 @@
             btn.setAttribute('title', cat.label);
             btn.innerHTML = `<span class="conv-cat-icon">${cat.icon}</span><span class="conv-cat-label">${cat.label}</span>`;
             btn.addEventListener('click', () => {
+                hapticFeedback('light');
                 convCategory = key;
                 // Reset units to first two of the new category
                 const unitKeys = UnitConverter.getUnitKeys(key);
@@ -1804,6 +1844,7 @@
         });
 
         fromSelect.addEventListener('change', () => {
+            hapticFeedback('light');
             convFromUnit = fromSelect.value;
             if (convCategory === 'numeral') {
                 renderConverterUI();
@@ -1813,11 +1854,13 @@
         });
 
         toSelect.addEventListener('change', () => {
+            hapticFeedback('light');
             convToUnit = toSelect.value;
             runConversion(fromInput, toResult, formulaLine);
         });
 
         swapBtn.addEventListener('click', () => {
+            hapticFeedback('light');
             const prevFrom = convFromUnit;
             const prevTo   = convToUnit;
             // If there's already a result, swap and use result as new input
@@ -1833,6 +1876,7 @@
         });
 
         copyBtn.addEventListener('click', () => {
+            hapticFeedback('light');
             const resultEl = document.getElementById('conv-result');
             if (!resultEl || !resultEl.dataset.rawValue) return;
             const fromUnitDef = UnitConverter.getUnit(convCategory, convFromUnit);
@@ -1910,6 +1954,7 @@
      * Handle numpad button presses for the converter input.
      */
     function handleConvNumpad(key, fromInput, toResult, formulaLine) {
+        hapticFeedback('light');
         let val = fromInput.value;
 
         if (key === 'C') {
@@ -2235,6 +2280,7 @@
         // On-Screen Keypad Handling
         document.querySelectorAll('.graph-key-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                hapticFeedback('light');
                 const key = btn.dataset.key;
                 let targetFn = graphFunctions.find(f => f.id === activeGraphFnId);
                 if (!targetFn) targetFn = graphFunctions[0];
@@ -2455,12 +2501,12 @@
 
     let solverSubTab = 'single'; // 'single' | 'system2' | 'system3'
     let solverInputs = {
-        single: 'x^2 - 5x + 6 = 0',
-        system2_1: '2x + 3y = 8',
-        system2_2: '3x - y = 1',
-        system3_1: 'x + y + z = 6',
-        system3_2: '2y + 5z = -4',
-        system3_3: '2x + 5y - z = 27'
+        single: '',
+        system2_1: '',
+        system2_2: '',
+        system3_1: '',
+        system3_2: '',
+        system3_3: ''
     };
     let solverLastResult = null;
     let solverShowSteps = true;
@@ -2520,12 +2566,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Examples Bar -->
-                <div class="solver-examples-bar" aria-label="Quick example equations">
-                    <span class="solver-examples-label">Examples:</span>
-                    <div class="solver-examples-list" id="solver-examples-list"></div>
-                </div>
-
                 <!-- Input Card -->
                 <div class="solver-card">
                     <div id="solver-inputs-container" class="solver-inputs-container"></div>
@@ -2551,7 +2591,6 @@
 
     function setupSolverControls() {
         const inputsContainer = document.getElementById('solver-inputs-container');
-        const examplesList = document.getElementById('solver-examples-list');
         const resultContainer = document.getElementById('solver-result-container');
         const btnSolve = document.getElementById('btn-solver-solve');
         const btnClear = document.getElementById('btn-solver-clear');
@@ -2621,63 +2660,10 @@
             }
         }
 
-        // 2. Render Examples Bar
-        const EXAMPLES = {
-            single: [
-                { label: 'Quadratic', eq: 'x^2 - 5x + 6 = 0' },
-                { label: 'Complex Roots', eq: 'x^2 + 4 = 0' },
-                { label: 'Linear', eq: '3x - 5 = 2x + 7' },
-                { label: 'Cubic', eq: 'x^3 - 6x^2 + 11x - 6 = 0' },
-                { label: 'Trigonometric', eq: 'sin(x) = 0.5' },
-                { label: 'Exponential', eq: '2^x = 16' }
-            ],
-            system2: [
-                { label: 'Linear 2×2', eq1: '2x + 3y = 8', eq2: '3x - y = 1' },
-                { label: 'Fractions', eq1: '3x - 4y = 7', eq2: '5x + 2y = 3' },
-                { label: 'Dependent', eq1: '2x + 4y = 8', eq2: 'x + 2y = 4' },
-                { label: 'Inconsistent', eq1: 'x + y = 2', eq2: 'x + y = 5' }
-            ],
-            system3: [
-                { label: 'Standard 3×3', eq1: 'x + y + z = 6', eq2: '2y + 5z = -4', eq3: '2x + 5y - z = 27' },
-                { label: 'System B', eq1: 'x + 2y + 3z = 9', eq2: '2x - y + z = 8', eq3: '3x - z = 3' }
-            ]
-        };
-
-        function renderExamples() {
-            if (!examplesList) return;
-            const list = EXAMPLES[solverSubTab] || [];
-            examplesList.innerHTML = list.map((item, idx) => `
-                <button type="button" class="solver-example-pill" data-example-idx="${idx}">
-                    ${escapeHtml(item.label)}
-                </button>
-            `).join('');
-
-            examplesList.querySelectorAll('.solver-example-pill').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const idx = parseInt(btn.dataset.exampleIdx, 10);
-                    const ex = list[idx];
-                    if (!ex) return;
-
-                    if (solverSubTab === 'single') {
-                        solverInputs.single = ex.eq;
-                    } else if (solverSubTab === 'system2') {
-                        solverInputs.system2_1 = ex.eq1;
-                        solverInputs.system2_2 = ex.eq2;
-                    } else if (solverSubTab === 'system3') {
-                        solverInputs.system3_1 = ex.eq1;
-                        solverInputs.system3_2 = ex.eq2;
-                        solverInputs.system3_3 = ex.eq3;
-                    }
-
-                    renderInputs();
-                    executeSolver(true);
-                });
-            });
-        }
-
         // 3. Tab switching listeners
         document.querySelectorAll('.solver-tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                hapticFeedback('light');
                 const tab = btn.dataset.solverTab;
                 if (tab && tab !== solverSubTab) {
                     solverSubTab = tab;
@@ -2686,7 +2672,6 @@
                         b.classList.toggle('active', isActive);
                         b.setAttribute('aria-selected', String(isActive));
                     });
-                    renderExamples();
                     renderInputs();
                     if (resultContainer) resultContainer.innerHTML = '';
                 }
@@ -2695,6 +2680,7 @@
 
         // 4. Execution Logic
         executeSolver = function (saveToHistoryFlag = true) {
+            hapticFeedback('medium');
             syncInputsFromDOM();
             if (typeof AlgebraicSolver === 'undefined') {
                 if (resultContainer) {
@@ -2824,12 +2810,14 @@
         // 5. Button click events
         if (btnSolve) {
             btnSolve.addEventListener('click', () => {
+                hapticFeedback('medium');
                 executeSolver(true);
             });
         }
 
         if (btnClear) {
             btnClear.addEventListener('click', () => {
+                hapticFeedback('light');
                 if (solverSubTab === 'single') {
                     solverInputs.single = '';
                 } else if (solverSubTab === 'system2') {
@@ -2848,7 +2836,6 @@
         }
 
         // Initial render
-        renderExamples();
         renderInputs();
         if (solverLastResult) {
             let expr = '';
@@ -2886,12 +2873,16 @@
         window.addEventListener('keydown', handleKeyDown);
 
         // Modals
-        if (btnKeyboardHelp) btnKeyboardHelp.addEventListener('click', () => openModal(keyboardHelpModal));
+        if (btnKeyboardHelp) btnKeyboardHelp.addEventListener('click', () => {
+            hapticFeedback('light');
+            openModal(keyboardHelpModal);
+        });
 
         // Close modal on click background or close buttons
         document.querySelectorAll('.modal-backdrop').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal || e.target.classList.contains('modal-close-btn')) {
+                    hapticFeedback('light');
                     closeModal(modal);
                 }
             });
@@ -2899,6 +2890,7 @@
 
         // History / Steps Toggle Drawer
         btnHistoryToggle.addEventListener('click', () => {
+            hapticFeedback('light');
             const isVisible = historyPanel.style.display === 'flex';
             historyPanel.style.display = isVisible ? 'none' : 'flex';
             btnHistoryToggle.classList.toggle('active', !isVisible);
@@ -2908,6 +2900,7 @@
         const btnCloseHistory = document.getElementById('btn-close-history');
         if (btnCloseHistory) {
             btnCloseHistory.addEventListener('click', () => {
+                hapticFeedback('light');
                 historyPanel.style.display = 'none';
                 btnHistoryToggle.classList.remove('active');
             });
@@ -2917,6 +2910,7 @@
         const btnCloseAnalysis = document.getElementById('btn-close-analysis');
         if (btnCloseAnalysis) {
             btnCloseAnalysis.addEventListener('click', () => {
+                hapticFeedback('light');
                 const analysisPanel = document.getElementById('graph-analysis-panel');
                 if (analysisPanel) analysisPanel.style.display = 'none';
             });
@@ -2944,6 +2938,7 @@
         const filterBtns = document.querySelectorAll('.hist-filter-btn');
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
+                hapticFeedback('light');
                 filterBtns.forEach(b => {
                     b.classList.remove('active');
                     b.setAttribute('aria-pressed', 'false');
@@ -2955,11 +2950,20 @@
             });
         });
 
-        btnClearHistory.addEventListener('click', clearAllHistory);
-        btnExportHistory.addEventListener('click', exportHistory);
+        btnClearHistory.addEventListener('click', () => {
+            hapticFeedback('medium');
+            clearAllHistory();
+        });
+        btnExportHistory.addEventListener('click', () => {
+            hapticFeedback('light');
+            exportHistory();
+        });
 
         // Natural Language Input
-        smartMathSubmit.addEventListener('click', handleSmartSubmit);
+        smartMathSubmit.addEventListener('click', () => {
+            hapticFeedback('medium');
+            handleSmartSubmit();
+        });
 
         // ---- Sidebar ----
         setupSidebar();
@@ -3022,13 +3026,23 @@
         }
         window.addEventListener('resize', handleSidebarBreakpointChange);
 
-        btnOpen.addEventListener('click', openSidebar);
-        if (btnClose) btnClose.addEventListener('click', closeSidebar);
-        sidebarOverlay.addEventListener('click', closeSidebar);
+        btnOpen.addEventListener('click', () => {
+            hapticFeedback('light');
+            openSidebar();
+        });
+        if (btnClose) btnClose.addEventListener('click', () => {
+            hapticFeedback('light');
+            closeSidebar();
+        });
+        sidebarOverlay.addEventListener('click', () => {
+            hapticFeedback('light');
+            closeSidebar();
+        });
 
         // Sidebar theme preset buttons
         document.querySelectorAll('.theme-preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                hapticFeedback('light');
                 const preset = btn.dataset.themePreset;
                 if (preset) {
                     applyTheme(preset);
@@ -3046,9 +3060,10 @@
             if (label) label.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
         }
 
-        const btnSidebarTheme = document.getElementById('btn-sidebar-theme');
+const btnSidebarTheme = document.getElementById('btn-sidebar-theme');
         if (btnSidebarTheme) {
             btnSidebarTheme.addEventListener('click', () => {
+                hapticFeedback('light');
                 toggleTheme();
                 syncSidebarTheme();
             });
@@ -3063,6 +3078,7 @@
 
         document.querySelectorAll('.sidebar-swatch').forEach(sw => {
             sw.addEventListener('click', () => {
+                hapticFeedback('light');
                 applyAccent(sw.dataset.accentVal);
                 syncSidebarAccent(sw.dataset.accentVal);
             });
@@ -3071,6 +3087,7 @@
         // Sidebar mode items
         document.querySelectorAll('.sidebar-nav-item.mode-item').forEach(btn => {
             btn.addEventListener('click', () => {
+                hapticFeedback('light');
                 const mode = btn.dataset.mode;
                 if (mode) {
                     setMode(mode);
@@ -3086,6 +3103,7 @@
         const btnSidebarHistory = document.getElementById('btn-sidebar-history');
         if (btnSidebarHistory) {
             btnSidebarHistory.addEventListener('click', () => {
+                hapticFeedback('light');
                 closeSidebar();
                 const isVisible = historyPanel.style.display === 'flex';
                 if (!isVisible) {
@@ -3099,6 +3117,7 @@
         const btnSidebarKeyboard = document.getElementById('btn-sidebar-keyboard');
         if (btnSidebarKeyboard) {
             btnSidebarKeyboard.addEventListener('click', () => {
+                hapticFeedback('light');
                 closeSidebar();
                 openModal(keyboardHelpModal);
             });
@@ -3108,6 +3127,7 @@
         const btnOpenFormula = document.getElementById('btn-open-formula-sheet');
         if (btnOpenFormula) {
             btnOpenFormula.addEventListener('click', () => {
+                hapticFeedback('light');
                 closeSidebar();
                 openFormulaSheet();
             });
@@ -3117,6 +3137,7 @@
         const btnSidebarInstall = document.getElementById('btn-pwa-install-sidebar');
         if (btnSidebarInstall) {
             btnSidebarInstall.addEventListener('click', () => {
+                hapticFeedback('medium');
                 closeSidebar();
                 triggerInstall();
             });
@@ -3575,12 +3596,19 @@
         const btnClose = document.getElementById('btn-close-formula-sheet');
         const overlay  = document.getElementById('formula-sheet-overlay');
 
-        if (btnClose) btnClose.addEventListener('click', closeFormulaSheet);
-        if (overlay)  overlay.addEventListener('click', closeFormulaSheet);
+        if (btnClose) btnClose.addEventListener('click', () => {
+            hapticFeedback('light');
+            closeFormulaSheet();
+        });
+        if (overlay)  overlay.addEventListener('click', () => {
+            hapticFeedback('light');
+            closeFormulaSheet();
+        });
 
         // Tab switching
         document.querySelectorAll('.formula-tab').forEach(tab => {
             tab.addEventListener('click', () => {
+                hapticFeedback('light');
                 document.querySelectorAll('.formula-tab').forEach(t => {
                     t.classList.remove('active');
                     t.setAttribute('aria-selected', 'false');
